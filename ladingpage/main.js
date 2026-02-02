@@ -63,6 +63,72 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
 
+    // --- Calculator Logic ---
+    const monthlyPriceInput = document.getElementById('monthly-price');
+    const salesCountInput = document.getElementById('sales-count');
+    const commissionRateInput = document.getElementById('commission-rate');
+    const gainPerSaleEl = document.getElementById('gain-per-sale');
+    const gainTotalEl = document.getElementById('gain-total');
+    const scenarioTabs = document.querySelectorAll('.calc-tab');
+
+    const scenarios = {
+        conservador: { price: 250, sales: 2 },
+        realista: { price: 500, sales: 5 },
+        agressivo: { price: 1000, sales: 10 }
+    };
+
+    function formatCurrency(value) {
+        return new Intl.NumberFormat('pt-BR', {
+            style: 'currency',
+            currency: 'BRL'
+        }).format(value);
+    }
+
+    function calculate() {
+        const price = parseFloat(monthlyPriceInput.value) || 0;
+        const sales = parseFloat(salesCountInput.value) || 0;
+        const commission = parseFloat(commissionRateInput.value) || 0;
+
+        const gainPerSale = price * (commission / 100);
+        const gainTotal = gainPerSale * sales;
+
+        gainPerSaleEl.textContent = formatCurrency(gainPerSale);
+        gainTotalEl.textContent = formatCurrency(gainTotal);
+    }
+
+    // Input listeners
+    [monthlyPriceInput, salesCountInput, commissionRateInput].forEach(input => {
+        if (input) {
+            input.addEventListener('input', calculate);
+        }
+    });
+
+    // Tab listeners
+    scenarioTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            // Update active state
+            scenarioTabs.forEach(t => {
+                t.classList.remove('bg-white', 'text-primary', 'shadow-sm', 'ring-1', 'ring-gray-200');
+                t.classList.add('text-gray-500', 'hover:text-gray-900');
+            });
+            tab.classList.remove('text-gray-500', 'hover:text-gray-900');
+            tab.classList.add('bg-white', 'text-primary', 'shadow-sm', 'ring-1', 'ring-gray-200');
+
+            // Apply scenario values
+            const scenario = scenarios[tab.dataset.scenario];
+            if (scenario) {
+                monthlyPriceInput.value = scenario.price;
+                salesCountInput.value = scenario.sales;
+                // Trigger calculation animation (optional visual feedback)
+                calculate();
+            }
+        });
+    });
+
+    // Initial calculation
+    if (monthlyPriceInput) calculate();
+
+
     // --- Form Submission (Simulation) ---
     const form = document.getElementById('partner-form');
     

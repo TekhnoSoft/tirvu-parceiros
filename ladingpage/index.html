@@ -323,6 +323,69 @@
         </div>
     </section>
 
+    <!-- Calculator Section -->
+    <section id="calculadora" class="py-20 bg-gray-50 relative overflow-hidden">
+        <!-- Background Pattern -->
+        <div class="absolute inset-0 opacity-5" style="background-image: radial-gradient(#E63946 1px, transparent 1px); background-size: 30px 30px;"></div>
+
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Calcule seus ganhos</h2>
+                <p class="text-gray-600 text-lg">Ganhos baseados na <span class="text-primary font-bold">primeira mensalidade</span> do plano vendido</p>
+            </div>
+
+            <div class="bg-white rounded-3xl p-8 border border-gray-100 shadow-2xl">
+                <!-- Tabs -->
+                <div class="flex justify-center mb-10">
+                    <div class="bg-gray-100 p-1.5 rounded-xl inline-flex gap-2">
+                        <button class="calc-tab active px-6 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 bg-white text-primary shadow-sm ring-1 ring-gray-200" data-scenario="conservador">Conservador</button>
+                        <button class="calc-tab px-6 py-2.5 rounded-lg text-sm font-semibold text-gray-500 hover:text-gray-900 transition-all duration-300" data-scenario="realista">Realista</button>
+                        <button class="calc-tab px-6 py-2.5 rounded-lg text-sm font-semibold text-gray-500 hover:text-gray-900 transition-all duration-300" data-scenario="agressivo">Agressivo</button>
+                    </div>
+                </div>
+
+                <!-- Inputs -->
+                <div class="grid md:grid-cols-3 gap-6 mb-8">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-2">Valor da mensalidade (R$)</label>
+                        <div class="relative">
+                            <input type="number" id="monthly-price" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" value="250">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-2">Quantidade de vendas no mês</label>
+                        <div class="relative">
+                            <input type="number" id="sales-count" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" value="2">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-2">Comissão (%)</label>
+                        <div class="relative">
+                            <input type="number" id="commission-rate" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" value="50" readonly>
+                            <div class="absolute right-3 top-3 text-gray-400 pointer-events-none"><i class="fa-solid fa-lock text-xs"></i></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Results -->
+                <div class="bg-gray-50 rounded-2xl p-8 border border-gray-100 grid md:grid-cols-2 gap-8 items-center relative overflow-hidden group">
+                    <div class="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    
+                    <div class="relative z-10">
+                        <p class="text-gray-500 text-sm mb-1">Ganho por venda</p>
+                        <p class="text-3xl font-bold text-gray-900" id="gain-per-sale">R$ 125,00</p>
+                    </div>
+                    <div class="relative z-10 md:text-right">
+                        <p class="text-gray-500 text-sm mb-1">Ganho estimado no mês</p>
+                        <p class="text-4xl font-bold text-green-600" id="gain-total">R$ 250,00</p>
+                    </div>
+                </div>
+
+                <p class="text-center text-gray-400 text-xs mt-6">* Simulação ilustrativa. Condições finais definidas em contrato.</p>
+            </div>
+        </div>
+    </section>
+
     <!-- Testimonials Section -->
     <section class="py-20 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
