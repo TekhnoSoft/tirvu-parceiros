@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Programa de Parceiros Tirvu - Ganhe 50% de Comissão</title>
+    <meta name="description" content="Seja um parceiro Tirvu e ganhe 50% de comissão recorrente indicando a melhor solução de gestão de ponto do Brasil.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1584A1',
+                        secondary: '#0e5f73',
+                        light: '#F5F5F5',
+                        dark: '#1A1A1A',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="font-sans text-gray-800 antialiased overflow-x-hidden">
+
+    <!-- Navbar -->
+    <nav class="fixed w-full bg-white/95 backdrop-blur-sm shadow-sm z-50 transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <!-- Logo -->
+                <div class="flex-shrink-0 flex items-center">
+                    <a href="#" class="text-2xl font-bold text-primary flex items-center gap-2">
+                        <img src="logo.webp" alt="Tirvu Logo" class="h-8 w-auto">
+                    </a>
+                </div>
+                
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#beneficios" class="text-gray-600 hover:text-primary transition-colors font-medium">Benefícios</a>
+                    <a href="#sobre" class="text-gray-600 hover:text-primary transition-colors font-medium">O Produto</a>
+                    <a href="#como-funciona" class="text-gray-600 hover:text-primary transition-colors font-medium">Como Funciona</a>
+                    <a href="#faq" class="text-gray-600 hover:text-primary transition-colors font-medium">Dúvidas</a>
+                    <a href="#" class="text-primary font-semibold hover:text-secondary transition-colors">Área do Parceiro</a>
+                    <a href="#cadastro" class="bg-primary hover:bg-secondary text-white px-6 py-2.5 rounded-full font-semibold transition-all shadow-lg shadow-primary/30 transform hover:-translate-y-0.5">
+                        Seja Parceiro
+                    </a>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden flex items-center">
+                    <button id="mobile-menu-btn" class="text-gray-600 hover:text-primary focus:outline-none p-2">
+                        <i class="fa-solid fa-bars text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t absolute w-full left-0 shadow-lg">
+            <div class="px-4 pt-2 pb-6 space-y-2">
+                <a href="#beneficios" class="block px-3 py-3 text-gray-600 hover:text-primary hover:bg-gray-50 rounded-lg font-medium">Benefícios</a>
+                <a href="#sobre" class="block px-3 py-3 text-gray-600 hover:text-primary hover:bg-gray-50 rounded-lg font-medium">O Produto</a>
+                <a href="#como-funciona" class="block px-3 py-3 text-gray-600 hover:text-primary hover:bg-gray-50 rounded-lg font-medium">Como Funciona</a>
+                <a href="#faq" class="block px-3 py-3 text-gray-600 hover:text-primary hover:bg-gray-50 rounded-lg font-medium">Dúvidas</a>
+                <a href="#" class="block px-3 py-3 text-primary font-semibold hover:bg-primary/5 rounded-lg">Área do Parceiro</a>
+                <a href="#cadastro" class="block px-3 py-3 text-primary font-bold bg-primary/10 rounded-lg mt-4 text-center">Seja Parceiro</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative pt-32 pb-20 lg:pt-40 lg:pb-28 bg-gradient-to-br from-gray-50 to-white overflow-hidden">
+        <!-- Background Elements -->
+        <div class="absolute top-0 right-0 w-1/3 h-full bg-primary/5 -skew-x-12 translate-x-1/4"></div>
+        <div class="absolute bottom-0 left-0 w-64 h-64 bg-blue-100 rounded-full blur-3xl opacity-50 -translate-x-1/2 translate-y-1/2"></div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+            <div class="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center">
+                <!-- Text Content -->
+                <div class="text-center lg:text-left animate-fade-up">
+                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-semibold mb-6">
+                        <span class="relative flex h-3 w-3">
+                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                          <span class="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
+                        </span>
+                        Programa de Parceiros Oficial
+                    </div>
+                    <h1 class="text-4xl lg:text-6xl font-bold text-gray-900 leading-tight mb-6">
+                        Seja Parceiro Tirvu e Ganhe <span class="text-primary">50% de Comissão</span>
+                    </h1>
+                    <p class="text-lg lg:text-xl text-gray-600 mb-8 leading-relaxed max-w-2xl mx-auto lg:mx-0">
+                        Indique a melhor solução de gestão de ponto do Brasil e receba comissões recorrentes. Transforme sua rede de contatos em uma fonte de renda previsível.
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                        <a href="#cadastro" class="bg-primary hover:bg-secondary text-white px-8 py-4 rounded-full font-bold text-lg transition-all shadow-xl shadow-primary/30 transform hover:-translate-y-1 flex items-center justify-center gap-2">
+                            Quero Ser Parceiro <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+                        <a href="#como-funciona" class="bg-white border-2 border-gray-200 hover:border-primary text-gray-700 hover:text-primary px-8 py-4 rounded-full font-bold text-lg transition-all flex items-center justify-center">
+                            Saiba mais
+                        </a>
+                    </div>
+                    
+                    <!-- Social Proof -->
+                    <div class="mt-10 flex items-center justify-center lg:justify-start gap-6 text-sm text-gray-500 font-medium">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-users text-primary text-xl"></i>
+                            <span>+30 mil usuários</span>
+                        </div>
+                        <div class="w-px h-4 bg-gray-300"></div>
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-file-invoice text-primary text-xl"></i>
+                            <span>+250 mil arquivos/mês</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hero Image -->
+                <div class="relative lg:h-[600px] flex items-center justify-center animate-fade-in delay-200">
+                    <div class="relative z-10 w-full max-w-lg">
+                        <!-- Abstract Dashboard Representation -->
+                        <img src="https://img.freepik.com/free-vector/business-growth-concept-illustration_114360-8588.jpg?w=826&t=st=1709669000~exp=1709669600~hmac=..." alt="Crescimento Parceiros" class="w-full h-auto drop-shadow-2xl rounded-2xl" onerror="this.src='https://placehold.co/600x400/1584A1/ffffff?text=Parceria+de+Sucesso'">
+                        
+                        <!-- Floating Card 1 -->
+                        <div class="absolute -bottom-6 -left-6 bg-white p-4 rounded-xl shadow-xl border border-gray-100 hidden sm:block animate-bounce-slow">
+                            <div class="flex items-center gap-3">
+                                <div class="bg-green-100 p-2 rounded-lg text-green-600">
+                                    <i class="fa-solid fa-dollar-sign text-xl"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-gray-500">Comissão Recebida</p>
+                                    <p class="font-bold text-gray-800">R$ 1.250,00</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Floating Card 2 -->
+                        <div class="absolute top-10 -right-6 bg-white p-4 rounded-xl shadow-xl border border-gray-100 hidden sm:block animate-bounce-slow delay-700">
+                            <div class="flex items-center gap-3">
+                                <div class="bg-blue-100 p-2 rounded-lg text-blue-600">
+                                    <i class="fa-solid fa-user-plus text-xl"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-gray-500">Novos Indicados</p>
+                                    <p class="font-bold text-gray-800">+12 Parceiros</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Benefits Section -->
+    <section id="beneficios" class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16 max-w-3xl mx-auto">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Por que ser um parceiro Tirvu?</h2>
+                <p class="text-gray-600 text-lg">Oferecemos as melhores condições do mercado para que você cresça junto com a gente.</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Benefit 1 -->
+                <div class="bg-gray-50 rounded-2xl p-8 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border border-transparent hover:border-primary/20 group">
+                    <div class="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center text-primary text-2xl mb-6 group-hover:bg-primary group-hover:text-white transition-colors">
+                        <i class="fa-solid fa-percent"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">50% de Comissão</h3>
+                    <p class="text-gray-600">Ganhe metade do valor da primeira mensalidade de cada cliente indicado e fechado.</p>
+                </div>
+
+                <!-- Benefit 2 -->
+                <div class="bg-gray-50 rounded-2xl p-8 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border border-transparent hover:border-primary/20 group">
+                    <div class="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center text-primary text-2xl mb-6 group-hover:bg-primary group-hover:text-white transition-colors">
+                        <i class="fa-solid fa-rotate"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Comissões Recorrentes</h3>
+                    <p class="text-gray-600">Construa uma renda passiva recebendo uma porcentagem mensal enquanto seu indicado for cliente.</p>
+                </div>
+
+                <!-- Benefit 3 -->
+                <div class="bg-gray-50 rounded-2xl p-8 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border border-transparent hover:border-primary/20 group">
+                    <div class="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center text-primary text-2xl mb-6 group-hover:bg-primary group-hover:text-white transition-colors">
+                        <i class="fa-solid fa-headset"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Suporte Dedicado</h3>
+                    <p class="text-gray-600">Conte com nossa equipe de especialistas para te ajudar a vender mais e tirar dúvidas técnicas.</p>
+                </div>
+
+                <!-- Benefit 4 -->
+                <div class="bg-gray-50 rounded-2xl p-8 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border border-transparent hover:border-primary/20 group">
+                    <div class="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center text-primary text-2xl mb-6 group-hover:bg-primary group-hover:text-white transition-colors">
+                        <i class="fa-solid fa-bullhorn"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Material de Divulgação</h3>
+                    <p class="text-gray-600">Acesse banners, textos e apresentações prontas para divulgar nas suas redes sociais.</p>
+                </div>
+
+                <!-- Benefit 5 -->
+                <div class="bg-gray-50 rounded-2xl p-8 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border border-transparent hover:border-primary/20 group">
+                    <div class="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center text-primary text-2xl mb-6 group-hover:bg-primary group-hover:text-white transition-colors">
+                        <i class="fa-solid fa-chart-line"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Plataforma Consolidada</h3>
+                    <p class="text-gray-600">Venda um produto testado e aprovado por mais de 30 mil usuários em todo o Brasil.</p>
+                </div>
+                
+                 <!-- Benefit 6 -->
+                 <div class="bg-gray-50 rounded-2xl p-8 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border border-transparent hover:border-primary/20 group">
+                    <div class="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center text-primary text-2xl mb-6 group-hover:bg-primary group-hover:text-white transition-colors">
+                        <i class="fa-solid fa-trophy"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Sem Burocracia</h3>
+                    <p class="text-gray-600">Cadastro simples e rápido. Você não precisa ser especialista em RH para vender.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Product Section -->
+    <section id="sobre" class="py-20 bg-dark text-white relative overflow-hidden">
+        <!-- Background Pattern -->
+        <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#1584A1 1px, transparent 1px); background-size: 30px 30px;"></div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="grid lg:grid-cols-2 gap-16 items-center">
+                <div>
+                    <h2 class="text-3xl md:text-4xl font-bold mb-6">Sobre o Tirvu+</h2>
+                    <p class="text-gray-300 text-lg mb-8 leading-relaxed">
+                        O Tirvu é a solução definitiva para gestão de ponto eletrônico. Eliminamos planilhas complexas e processos manuais, trazendo automação e segurança jurídica para empresas de todos os tamanhos.
+                    </p>
+                    <ul class="space-y-4">
+                        <li class="flex items-start gap-3">
+                            <i class="fa-solid fa-check-circle text-primary mt-1"></i>
+                            <span><strong class="text-white">Reconhecimento Facial:</strong> Segurança antifraude na marcação de ponto.</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i class="fa-solid fa-check-circle text-primary mt-1"></i>
+                            <span><strong class="text-white">Gestão Automática:</strong> Cálculos de horas extras e banco de horas feitos na hora.</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i class="fa-solid fa-check-circle text-primary mt-1"></i>
+                            <span><strong class="text-white">100% Legal:</strong> Totalmente adequado à Portaria 671 do MTP.</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i class="fa-solid fa-check-circle text-primary mt-1"></i>
+                            <span><strong class="text-white">Redução de Custos:</strong> Economize até 30% com gestão eficiente.</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="relative">
+                     <!-- Use a placeholder that looks like software UI -->
+                     <div class="bg-gray-800 rounded-2xl p-2 shadow-2xl border border-gray-700">
+                        <img src="hero.png" alt="Interface Tirvu" class="rounded-xl w-full">
+                     </div>
+                     <!-- Floating Badge -->
+                     <div class="absolute -bottom-5 -right-5 bg-primary text-white p-6 rounded-2xl shadow-lg hidden md:block">
+                         <p class="text-3xl font-bold">+250k</p>
+                         <p class="text-sm opacity-90">Arquivos Processados</p>
+                     </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How it Works Section -->
+    <section id="como-funciona" class="py-20 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Como funciona o programa?</h2>
+                <p class="text-gray-600 text-lg">É muito simples começar a ganhar. Veja o passo a passo:</p>
+            </div>
+
+            <div class="relative">
+                <!-- Connecting Line (Desktop) -->
+                <div class="hidden md:block absolute top-1/2 left-0 w-full h-1 bg-gray-200 -translate-y-1/2 z-0"></div>
+
+                <div class="grid md:grid-cols-3 gap-8 relative z-10">
+                    <!-- Step 1 -->
+                    <div class="bg-white p-8 rounded-2xl shadow-lg text-center relative group hover:-translate-y-2 transition-transform duration-300">
+                        <div class="w-16 h-16 bg-primary text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6 shadow-lg shadow-primary/30 border-4 border-white">1</div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">Cadastre-se</h3>
+                        <p class="text-gray-600">Preencha o formulário abaixo e aguarde a aprovação do seu cadastro em nossa plataforma.</p>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="bg-white p-8 rounded-2xl shadow-lg text-center relative group hover:-translate-y-2 transition-transform duration-300">
+                        <div class="w-16 h-16 bg-primary text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6 shadow-lg shadow-primary/30 border-4 border-white">2</div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">Acesse o Portal</h3>
+                        <p class="text-gray-600">Após aprovado, você terá acesso ao portal para cadastrar os contatos (leads) das empresas indicadas.</p>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="bg-white p-8 rounded-2xl shadow-lg text-center relative group hover:-translate-y-2 transition-transform duration-300">
+                        <div class="w-16 h-16 bg-primary text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6 shadow-lg shadow-primary/30 border-4 border-white">3</div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">Nós Vendemos</h3>
+                        <p class="text-gray-600">A Tirvu entra em contato com o cliente. Fechando o negócio, você garante 50% de comissão.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">O que dizem nossos parceiros</h2>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Testimonial 1 -->
+                <div class="bg-gray-50 p-8 rounded-2xl border border-gray-100">
+                    <div class="flex text-yellow-400 mb-4">
+                        <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                    </div>
+                    <p class="text-gray-600 mb-6 italic">"O programa de parceiros da Tirvu mudou meu negócio. A aceitação do produto é muito alta e o suporte é incrível."</p>
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-gray-300 rounded-full overflow-hidden">
+                             <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Foto Parceiro" class="w-full h-full object-cover">
+                        </div>
+                        <div>
+                            <p class="font-bold text-gray-900">Carlos Silva</p>
+                            <p class="text-sm text-gray-500">Consultor de RH</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Testimonial 2 -->
+                <div class="bg-gray-50 p-8 rounded-2xl border border-gray-100">
+                    <div class="flex text-yellow-400 mb-4">
+                        <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                    </div>
+                    <p class="text-gray-600 mb-6 italic">"Fácil de vender e a comissão cai certinho. Já indiquei mais de 10 clientes em 2 meses."</p>
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-gray-300 rounded-full overflow-hidden">
+                            <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Foto Parceiro" class="w-full h-full object-cover">
+                        </div>
+                        <div>
+                            <p class="font-bold text-gray-900">Mariana Santos</p>
+                            <p class="text-sm text-gray-500">Contadora</p>
+                        </div>
+                    </div>
+                </div>
+                
+                 <!-- Testimonial 3 -->
+                 <div class="bg-gray-50 p-8 rounded-2xl border border-gray-100">
+                    <div class="flex text-yellow-400 mb-4">
+                        <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                    </div>
+                    <p class="text-gray-600 mb-6 italic">"A plataforma é muito estável, o que me dá segurança para indicar aos meus clientes mais exigentes."</p>
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-gray-300 rounded-full overflow-hidden">
+                            <img src="https://randomuser.me/api/portraits/men/85.jpg" alt="Foto Parceiro" class="w-full h-full object-cover">
+                        </div>
+                        <div>
+                            <p class="font-bold text-gray-900">Roberto Almeida</p>
+                            <p class="text-sm text-gray-500">Empresário</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section id="faq" class="py-20 bg-gray-50">
+        <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Perguntas Frequentes</h2>
+                <p class="text-gray-600 text-lg">Tire suas dúvidas sobre o programa.</p>
+            </div>
+
+            <div class="space-y-4" id="faq-container">
+                <!-- FAQ Item 1 -->
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+                    <button class="faq-btn w-full px-6 py-4 text-left flex justify-between items-center focus:outline-none">
+                        <span class="font-semibold text-gray-900">Como funciona a comissão?</span>
+                        <i class="fa-solid fa-chevron-down text-primary transition-transform duration-300"></i>
+                    </button>
+                    <div class="faq-content hidden px-6 pb-4 text-gray-600">
+                        <p>Você recebe 50% do valor da primeira mensalidade paga pelo cliente indicado. O pagamento é realizado de forma rápida e transparente.</p>
+                    </div>
+                </div>
+
+                <!-- FAQ Item 2 -->
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+                    <button class="faq-btn w-full px-6 py-4 text-left flex justify-between items-center focus:outline-none">
+                        <span class="font-semibold text-gray-900">Quando recebo o pagamento?</span>
+                        <i class="fa-solid fa-chevron-down text-primary transition-transform duration-300"></i>
+                    </button>
+                    <div class="faq-content hidden px-6 pb-4 text-gray-600">
+                        <p>Os pagamentos são realizados mensalmente, sempre até o dia 10 do mês subsequente ao pagamento da fatura pelo cliente indicado.</p>
+                    </div>
+                </div>
+
+                <!-- FAQ Item 3 -->
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+                    <button class="faq-btn w-full px-6 py-4 text-left flex justify-between items-center focus:outline-none">
+                        <span class="font-semibold text-gray-900">Preciso de CNPJ?</span>
+                        <i class="fa-solid fa-chevron-down text-primary transition-transform duration-300"></i>
+                    </button>
+                    <div class="faq-content hidden px-6 pb-4 text-gray-600">
+                        <p>Não obrigatoriamente. Você pode começar como Pessoa Física (CPF) e receber via RPA, mas recomendamos CNPJ para otimização fiscal conforme seus ganhos aumentarem.</p>
+                    </div>
+                </div>
+
+                <!-- FAQ Item 4 -->
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+                    <button class="faq-btn w-full px-6 py-4 text-left flex justify-between items-center focus:outline-none">
+                        <span class="font-semibold text-gray-900">Existe meta mínima?</span>
+                        <i class="fa-solid fa-chevron-down text-primary transition-transform duration-300"></i>
+                    </button>
+                    <div class="faq-content hidden px-6 pb-4 text-gray-600">
+                        <p>Não! Você é livre para indicar quando e quanto quiser. Não exigimos metas mínimas para manter seu cadastro ativo.</p>
+                    </div>
+                </div>
+                
+                <!-- FAQ Item 5 -->
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+                    <button class="faq-btn w-full px-6 py-4 text-left flex justify-between items-center focus:outline-none">
+                        <span class="font-semibold text-gray-900">Posso vender para todo o Brasil?</span>
+                        <i class="fa-solid fa-chevron-down text-primary transition-transform duration-300"></i>
+                    </button>
+                    <div class="faq-content hidden px-6 pb-4 text-gray-600">
+                        <p>Sim! O Tirvu é uma solução em nuvem (SaaS), o que permite que você venda para empresas de qualquer lugar do Brasil.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA / Registration Section -->
+    <section id="cadastro" class="py-20 bg-primary relative overflow-hidden">
+        <!-- Decor -->
+        <div class="absolute top-0 right-0 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2"></div>
+        <div class="absolute bottom-0 left-0 w-64 h-64 bg-black opacity-10 rounded-full blur-3xl -translate-x-1/2 translate-y-1/2"></div>
+
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="bg-white rounded-2xl shadow-2xl overflow-hidden">
+                <div class="grid md:grid-cols-2">
+                    <div class="p-8 md:p-12 bg-gray-50 flex flex-col justify-center">
+                        <h2 class="text-3xl font-bold text-gray-900 mb-4">Comece a Ganhar Hoje Mesmo</h2>
+                        <p class="text-gray-600 mb-8">Preencha seus dados e nossa equipe de parceiros entrará em contato em até 24h.</p>
+                        
+                        <div class="space-y-4">
+                            <div class="flex items-center gap-3 text-gray-600">
+                                <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600">
+                                    <i class="fa-solid fa-check"></i>
+                                </div>
+                                <span>Cadastro 100% gratuito</span>
+                            </div>
+                            <div class="flex items-center gap-3 text-gray-600">
+                                <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600">
+                                    <i class="fa-solid fa-check"></i>
+                                </div>
+                                <span>Acesso imediato a materiais</span>
+                            </div>
+                            <div class="flex items-center gap-3 text-gray-600">
+                                <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600">
+                                    <i class="fa-solid fa-check"></i>
+                                </div>
+                                <span>Treinamento de vendas incluso</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-8 md:p-12">
+                        <form id="partner-form" class="space-y-4">
+                            <div>
+                                <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Nome Completo</label>
+                                <input type="text" id="name" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" placeholder="Seu nome">
+                            </div>
+                            <div>
+                                <label for="email" class="block text-sm font-medium text-gray-700 mb-1">E-mail</label>
+                                <input type="email" id="email" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" placeholder="seu@email.com">
+                            </div>
+                            <div>
+                                <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">WhatsApp</label>
+                                <input type="tel" id="phone" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" placeholder="(00) 00000-0000">
+                            </div>
+                            
+                            <div class="grid grid-cols-3 gap-4">
+                                <div class="col-span-1">
+                                    <label for="uf" class="block text-sm font-medium text-gray-700 mb-1">UF</label>
+                                    <select id="uf" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all appearance-none bg-white">
+                                        <option value="" disabled selected>UF</option>
+                                    </select>
+                                </div>
+                                <div class="col-span-2">
+                                    <label for="city" class="block text-sm font-medium text-gray-700 mb-1">Cidade</label>
+                                    <select id="city" required disabled class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all appearance-none bg-white disabled:bg-gray-100 disabled:text-gray-400">
+                                        <option value="" disabled selected>Selecione o Estado primeiro</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start gap-3 pt-2">
+                                <input type="checkbox" id="auth" required class="mt-1 w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary">
+                                <label for="auth" class="text-sm text-gray-600 leading-tight cursor-pointer">Eu autorizo a Tirvu falar em meu nome.</label>
+                            </div>
+                            
+                            <button type="submit" class="w-full bg-primary hover:bg-secondary text-white font-bold py-3 rounded-lg shadow-lg transition-all transform hover:-translate-y-1 mt-2">
+                                Cadastrar Agora
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white pt-16 pb-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-4 gap-8 mb-12">
+                <div class="col-span-1 md:col-span-1">
+                    <a href="#" class="text-2xl font-bold text-white flex items-center gap-2 mb-4">
+                        <img src="logo.webp" alt="Tirvu Logo" class="h-8 w-auto">
+                    </a>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        A solução mais completa e inteligente para gestão de ponto eletrônico do Brasil.
+                    </p>
+                    <div class="mt-6 flex gap-4">
+                        <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-white hover:bg-primary transition-colors">
+                            <i class="fa-brands fa-instagram"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-white hover:bg-primary transition-colors">
+                            <i class="fa-brands fa-linkedin-in"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-white hover:bg-primary transition-colors">
+                            <i class="fa-brands fa-facebook-f"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="font-bold text-lg mb-4">Produto</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-primary transition-colors">Funcionalidades</a></li>
+                        <li><a href="#" class="hover:text-primary transition-colors">Planos</a></li>
+                        <li><a href="#" class="hover:text-primary transition-colors">Integrações</a></li>
+                        <li><a href="#" class="hover:text-primary transition-colors">Aplicativo</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-bold text-lg mb-4">Parceiros</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#beneficios" class="hover:text-primary transition-colors">Benefícios</a></li>
+                        <li><a href="#como-funciona" class="hover:text-primary transition-colors">Como Funciona</a></li>
+                        <li><a href="#cadastro" class="hover:text-primary transition-colors">Cadastro</a></li>
+                        <li><a href="#" class="hover:text-primary transition-colors">Área do Parceiro</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-bold text-lg mb-4">Contato</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-envelope text-primary"></i> contato@tirvu.com.br</li>
+                        <li class="flex items-center gap-2"><i class="fa-brands fa-whatsapp text-primary"></i> (11) 99999-9999</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-location-dot text-primary"></i> Atuamos em todo o Brasil</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+                <p class="text-gray-500 text-sm text-center md:text-left">
+                    &copy; 2024 Tirvu Tecnologia. Todos os direitos reservados.
+                </p>
+                <div class="flex gap-6 text-sm text-gray-500">
+                    <a href="#" class="hover:text-white transition-colors">Política de Privacidade</a>
+                    <a href="#" class="hover:text-white transition-colors">Termos de Uso</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- WhatsApp Button -->
+    <a href="#" class="fixed bottom-6 right-6 bg-green-500 text-white w-14 h-14 rounded-full shadow-2xl flex items-center justify-center text-3xl hover:bg-green-600 transition-all hover:scale-110 z-50 animate-bounce-slow" title="Fale conosco no WhatsApp">
+        <i class="fa-brands fa-whatsapp"></i>
+    </a>
+
+    <!-- Scripts -->
+    <script src="main.js"></script>
+</body>
+</html>

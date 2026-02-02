@@ -1,0 +1,173 @@
+document.addEventListener('DOMContentLoaded', () => {
+    
+    // --- Mobile Menu Toggle ---
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const mobileLinks = mobileMenu.querySelectorAll('a');
+
+    mobileMenuBtn.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+        const icon = mobileMenuBtn.querySelector('i');
+        if (mobileMenu.classList.contains('hidden')) {
+            icon.classList.remove('fa-xmark');
+            icon.classList.add('fa-bars');
+        } else {
+            icon.classList.remove('fa-bars');
+            icon.classList.add('fa-xmark');
+        }
+    });
+
+    // Close mobile menu when a link is clicked
+    mobileLinks.forEach(link => {
+        link.addEventListener('click', () => {
+            mobileMenu.classList.add('hidden');
+            const icon = mobileMenuBtn.querySelector('i');
+            icon.classList.remove('fa-xmark');
+            icon.classList.add('fa-bars');
+        });
+    });
+
+
+    // --- FAQ Accordion ---
+    const faqButtons = document.querySelectorAll('.faq-btn');
+
+    faqButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const content = button.nextElementSibling;
+            const icon = button.querySelector('i');
+
+            // Close other open FAQs
+            faqButtons.forEach(otherBtn => {
+                if (otherBtn !== button) {
+                    otherBtn.nextElementSibling.classList.add('hidden');
+                    otherBtn.querySelector('i').classList.remove('rotate-180');
+                }
+            });
+
+            // Toggle current
+            content.classList.toggle('hidden');
+            icon.classList.toggle('rotate-180');
+        });
+    });
+
+
+    // --- Navbar Scroll Effect ---
+    const navbar = document.getElementById('navbar');
+    
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 50) {
+            navbar.classList.add('shadow-md');
+        } else {
+            navbar.classList.remove('shadow-md');
+        }
+    });
+
+
+    // --- Form Submission (Simulation) ---
+    const form = document.getElementById('partner-form');
+    
+    // IBGE API Integration
+    const ufSelect = document.getElementById('uf');
+    const citySelect = document.getElementById('city');
+
+    // Fetch States (UF)
+    fetch('https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome')
+        .then(response => response.json())
+        .then(states => {
+            states.forEach(state => {
+                const option = document.createElement('option');
+                option.value = state.sigla;
+                option.textContent = state.sigla;
+                ufSelect.appendChild(option);
+            });
+        })
+        .catch(error => console.error('Erro ao carregar estados:', error));
+
+    // Handle State Selection
+    ufSelect.addEventListener('change', (e) => {
+        const selectedUf = e.target.value;
+        
+        // Reset and disable city select while loading
+        citySelect.innerHTML = '<option value="" disabled selected>Carregando...</option>';
+        citySelect.disabled = true;
+
+        if (selectedUf) {
+            fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${selectedUf}/municipios?orderBy=nome`)
+                .then(response => response.json())
+                .then(cities => {
+                    // Clear loading message
+                    citySelect.innerHTML = '<option value="" disabled selected>Selecione a Cidade</option>';
+                    
+                    cities.forEach(city => {
+                        const option = document.createElement('option');
+                        option.value = city.nome;
+                        option.textContent = city.nome;
+                        citySelect.appendChild(option);
+                    });
+                    
+                    citySelect.disabled = false;
+                })
+                .catch(error => {
+                    console.error('Erro ao carregar cidades:', error);
+                    citySelect.innerHTML = '<option value="" disabled selected>Erro ao carregar</option>';
+                });
+        } else {
+             citySelect.innerHTML = '<option value="" disabled selected>Selecione o Estado primeiro</option>';
+             citySelect.disabled = true;
+        }
+    });
+
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        const btn = form.querySelector('button[type="submit"]');
+        const originalText = btn.innerText;
+        
+        // Loading state
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando...';
+        
+        // Simulate API call
+        setTimeout(() => {
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> Cadastro Enviado!';
+            btn.classList.remove('bg-primary', 'hover:bg-secondary');
+            btn.classList.add('bg-green-500', 'hover:bg-green-600');
+            
+            // Show success message (could be a modal, using alert for simplicity or injecting HTML)
+            alert('Parabéns! Seu cadastro foi recebido com sucesso. Nossa equipe entrará em contato em breve.');
+            
+            form.reset();
+            
+            // Reset button after 3 seconds
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.innerText = originalText;
+                btn.classList.add('bg-primary', 'hover:bg-secondary');
+                btn.classList.remove('bg-green-500', 'hover:bg-green-600');
+            }, 3000);
+            
+        }, 1500);
+    });
+
+    // --- Smooth Scroll for Anchor Links (Optional fix for fixed header offset) ---
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href');
+            if (targetId === '#') return;
+            
+            const targetElement = document.querySelector(targetId);
+            if (targetElement) {
+                const headerOffset = 80; // Height of fixed header
+                const elementPosition = targetElement.getBoundingClientRect().top;
+                const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+    
+                window.scrollTo({
+                    top: offsetPosition,
+                    behavior: "smooth"
+                });
+            }
+        });
+    });
+
+});
