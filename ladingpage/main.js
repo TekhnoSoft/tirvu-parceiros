@@ -84,8 +84,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }).format(value);
     }
 
+    function parseCurrency(str) {
+        if (typeof str === 'number') return str;
+        // Remove everything that is not a digit
+        const digits = str.replace(/\D/g, '');
+        // Divide by 100 to get decimal value (ATM style)
+        return parseFloat(digits) / 100;
+    }
+
     function calculate() {
-        const price = parseFloat(monthlyPriceInput.value) || 0;
+        // Parse currency from the formatted string
+        const price = parseCurrency(monthlyPriceInput.value) || 0;
         const sales = parseFloat(salesCountInput.value) || 0;
         const commission = parseFloat(commissionRateInput.value) || 0;
 
@@ -97,7 +106,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Input listeners
-    [monthlyPriceInput, salesCountInput, commissionRateInput].forEach(input => {
+    monthlyPriceInput.addEventListener('input', (e) => {
+        const value = e.target.value;
+        // Handle empty or invalid input
+        if (!value) {
+            e.target.value = formatCurrency(0);
+        } else {
+            // Apply mask
+            const number = parseCurrency(value);
+            e.target.value = formatCurrency(number);
+        }
+        calculate();
+    });
+
+    [salesCountInput, commissionRateInput].forEach(input => {
         if (input) {
             input.addEventListener('input', calculate);
         }
@@ -117,7 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Apply scenario values
             const scenario = scenarios[tab.dataset.scenario];
             if (scenario) {
-                monthlyPriceInput.value = scenario.price;
+                monthlyPriceInput.value = formatCurrency(scenario.price);
                 salesCountInput.value = scenario.sales;
                 // Trigger calculation animation (optional visual feedback)
                 calculate();
