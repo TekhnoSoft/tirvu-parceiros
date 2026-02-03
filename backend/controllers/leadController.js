@@ -1,0 +1,206 @@
+const Lead = require('../models/Lead');
+const Partner = require('../models/Partner');
+const User = require('../models/User');
+const whatsappService = require('../services/whatsappService');
+const { Op } = require('sequelize');
+
+exports.create = async (req, res) => {
+  try {
+    const { name, email, phone, company, type, document, value, status } = req.body;
+    
+    // Se for admin, pode passar o partnerId no body, senão pega do usuário logado
+    let partnerId = req.body.partnerId;
+
+    if (req.user.role === 'partner') {
+      const partner = await Partner.findOne({ where: { userId: req.user.id } });
+      if (!partner) {
+        return res.status(404).json({ message: 'Parceiro não encontrado para este usuário.' });
+      }
+      partnerId = partner.id;
+    } else if (!partnerId) {
+      // Se for admin e não enviou partnerId, tenta encontrar um partner associado ao admin
+      let adminPartner = await Partner.findOne({ where: { userId: req.user.id } });
+      
+      // Se não existir parceiro para o admin, cria um automaticamente
+      if (!adminPartner) {
+        try {
+          adminPartner = await Partner.create({
+            userId: req.user.id,
+            status: 'approved', // Admin já nasce aprovado
+            uf: 'DF', // Default
+            city: 'Distrito Federal' // Default
+          });
+        } catch (partnerError) {
+          console.error('Erro ao criar parceiro para admin:', partnerError);
+          return res.status(500).json({ message: 'Erro ao criar perfil de parceiro para o administrador.' });
+        }
+      }
+
+      if (adminPartner) {
+        partnerId = adminPartner.id;
+      } else {
+        return res.status(400).json({ message: 'PartnerId é obrigatório para criação por Admin.' });
+      }
+    }
+
+    const lead = await Lead.create({
+      partnerId,
+      name,
+      email,
+      phone,
+      company,
+      type,
+      document,
+      value: value || 0,
+      status
+    });
+
+    res.status(201).json(lead);
+  } catch (error) {
+    console.error('Erro ao criar lead:', error);
+    res.status(500).json({ message: 'Erro ao criar lead.' });
+  }
+};
+
+exports.list = async (req, res) => {
+  try {
+    const { startDate, endDate, partnerId } = req.query;
+    const whereClause = {};
+
+    if (req.user.role === 'partner') {
+      const partner = await Partner.findOne({ where: { userId: req.user.id } });
+      if (!partner) {
+        return res.status(404).json({ message: 'Parceiro não encontrado.' });
+      }
+      whereClause.partnerId = partner.id;
+    } else if (partnerId) {
+       // Se for admin e passou partnerId, filtra por ele
+       whereClause.partnerId = partnerId;
+    }
+    
+    // Filtro de data
+    if (startDate && endDate) {
+      whereClause.createdAt = {
+        [Op.between]: [new Date(startDate), new Date(endDate)]
+      };
+    }
+
+    const leads = await Lead.findAll({
+      where: whereClause,
+      order: [['createdAt', 'DESC']],
+      include: [{ 
+        model: Partner, 
+        attributes: ['id', 'uf', 'pixKey', 'pixKeyType'],
+        include: [{
+          model: User,
+          attributes: ['name', 'role']
+        }]
+      }]
+    });
+
+    res.json(leads);
+  } catch (error) {
+    console.error('Erro ao listar leads:', error);
+    res.status(500).json({ message: 'Erro ao listar leads.' });
+  }
+};
+
+exports.update = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, email, phone, company, type, document, value, status, paymentStatus, saleValue, commissionPercentage, commissionValue } = req.body;
+
+    const lead = await Lead.findByPk(id);
+    if (!lead) return res.status(404).json({ message: 'Lead não encontrado.' });
+
+    // Verificar permissão
+    if (req.user.role === 'partner') {
+      const partner = await Partner.findOne({ where: { userId: req.user.id } });
+      if (lead.partnerId !== partner.id) {
+        return res.status(403).json({ message: 'Acesso negado.' });
+      }
+    }
+
+    await lead.update({ 
+      name, 
+      email, 
+      phone, 
+      company, 
+      type, 
+      document, 
+      value: value || 0, 
+      status,
+      saleClosed: req.body.saleClosed !== undefined ? req.body.saleClosed : lead.saleClosed,
+      paymentStatus: paymentStatus !== undefined ? paymentStatus : lead.paymentStatus,
+      saleValue: saleValue !== undefined ? saleValue : lead.saleValue,
+      commissionPercentage: commissionPercentage !== undefined ? commissionPercentage : lead.commissionPercentage,
+      commissionValue: commissionValue !== undefined ? commissionValue : lead.commissionValue,
+      commissionProof: req.body.commissionProof !== undefined ? req.body.commissionProof : lead.commissionProof
+    });
+
+    // Notificar parceiro via WhatsApp se a venda for fechada
+    if (req.body.saleClosed === true) {
+      try {
+        const partner = await Partner.findByPk(lead.partnerId, {
+          include: [{ model: User, attributes: ['name'] }]
+        });
+
+        if (partner && partner.phone) {
+          const statusMap = {
+            'awaiting_payment': 'Aguardando Pagamento',
+            'payment_made': 'Pagamento Efetuado'
+          };
+          
+          const paymentStatusLabel = statusMap[lead.paymentStatus] || lead.paymentStatus;
+          
+          const formatCurrency = (value) => {
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+          };
+
+          let message = `Olá ${partner.User.name}, parabéns! 🎉\n\n`;
+          message += `A venda do lead *${lead.name}* foi confirmada!\n\n`;
+          message += `💰 Valor da Venda: ${formatCurrency(lead.saleValue)}\n`;
+          message += `💵 Sua Comissão: ${formatCurrency(lead.commissionValue)}\n`;
+          message += `📊 Status do Pagamento: *${paymentStatusLabel}*\n`;
+          
+          // Enviar mensagem de texto primeiro
+          await whatsappService.sendText(partner.phone, message);
+
+          // Se tiver comprovante, enviar em seguida
+          if (lead.paymentStatus === 'payment_made' && lead.commissionProof) {
+             // O comprovante é enviado separadamente pois send-document pode não suportar caption
+             await whatsappService.sendFile(partner.phone, lead.commissionProof);
+          }
+        }
+      } catch (waError) {
+        console.error('Erro ao enviar notificação WhatsApp:', waError);
+      }
+    }
+
+    res.json(lead);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Erro ao atualizar lead.' });
+  }
+};
+
+exports.delete = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const lead = await Lead.findByPk(id);
+    if (!lead) return res.status(404).json({ message: 'Lead não encontrado.' });
+
+    if (req.user.role === 'partner') {
+      const partner = await Partner.findOne({ where: { userId: req.user.id } });
+      if (lead.partnerId !== partner.id) {
+        return res.status(403).json({ message: 'Acesso negado.' });
+      }
+    }
+
+    await lead.destroy();
+    res.status(204).send();
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Erro ao deletar lead.' });
+  }
+};

@@ -151,6 +151,26 @@ document.addEventListener('DOMContentLoaded', () => {
     if (monthlyPriceInput) calculate();
 
 
+    // --- WhatsApp Mask ---
+    const phoneInput = document.getElementById('phone');
+    
+    phoneInput.addEventListener('input', (e) => {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length > 11) value = value.slice(0, 11);
+        
+        if (value.length > 10) {
+            value = value.replace(/^(\d\d)(\d{5})(\d{4}).*/, '($1) $2-$3');
+        } else if (value.length > 6) {
+            value = value.replace(/^(\d\d)(\d{4})(\d{0,4}).*/, '($1) $2-$3');
+        } else if (value.length > 2) {
+            value = value.replace(/^(\d\d)(\d{0,5}).*/, '($1) $2');
+        } else {
+            value = value.replace(/^(\d*)/, '($1');
+        }
+        
+        e.target.value = value;
+    });
+
     // --- Form Submission (Simulation) ---
     const form = document.getElementById('partner-form');
     
@@ -205,7 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
         e.preventDefault();
         
         const btn = form.querySelector('button[type="submit"]');
@@ -215,26 +235,78 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.disabled = true;
         btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando...';
         
-        // Simulate API call
-        setTimeout(() => {
-            btn.innerHTML = '<i class="fa-solid fa-check"></i> Cadastro Enviado!';
-            btn.classList.remove('bg-primary', 'hover:bg-secondary');
-            btn.classList.add('bg-green-500', 'hover:bg-green-600');
-            
-            // Show success message (could be a modal, using alert for simplicity or injecting HTML)
-            alert('Parabéns! Seu cadastro foi recebido com sucesso. Nossa equipe entrará em contato em breve.');
-            
-            form.reset();
-            
-            // Reset button after 3 seconds
-            setTimeout(() => {
+        const data = {
+            name: document.getElementById('name').value,
+            email: document.getElementById('email').value,
+            phone: document.getElementById('phone').value,
+            uf: document.getElementById('uf').value,
+            city: document.getElementById('city').value
+        };
+
+        try {
+            const response = await fetch('http://localhost:5000/api/public/partners/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> Cadastro Enviado!';
+                btn.classList.remove('bg-primary', 'hover:bg-secondary');
+                btn.classList.add('bg-green-500', 'hover:bg-green-600');
+                
+                Toastify({
+                    text: "Parabéns! Seu cadastro foi recebido com sucesso. Nossa equipe entrará em contato em breve.",
+                    duration: 5000,
+                    gravity: "top", // `top` or `bottom`
+                    position: "center", // `left`, `center` or `right`
+                    style: {
+                        background: "linear-gradient(to right, #00b09b, #96c93d)",
+                    },
+                }).showToast();
+
+                form.reset();
+                
+                // Reset button after 3 seconds
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.innerText = originalText;
+                    btn.classList.add('bg-primary', 'hover:bg-secondary');
+                    btn.classList.remove('bg-green-500', 'hover:bg-green-600');
+                }, 3000);
+            } else {
+                Toastify({
+                    text: 'Erro ao cadastrar: ' + (result.message || 'Erro desconhecido'),
+                    duration: 4000,
+                    gravity: "top",
+                    position: "center",
+                    style: {
+                        background: "linear-gradient(to right, #ff5f6d, #ffc371)",
+                    },
+                }).showToast();
+                
                 btn.disabled = false;
                 btn.innerText = originalText;
-                btn.classList.add('bg-primary', 'hover:bg-secondary');
-                btn.classList.remove('bg-green-500', 'hover:bg-green-600');
-            }, 3000);
+            }
+        } catch (error) {
+            console.error('Erro:', error);
+            Toastify({
+                text: "Erro ao conectar com o servidor.",
+                duration: 4000,
+                gravity: "top",
+                position: "center",
+                style: {
+                    background: "linear-gradient(to right, #ff5f6d, #ffc371)",
+                },
+            }).showToast();
             
-        }, 1500);
+            btn.disabled = false;
+            btn.innerText = originalText;
+        }
     });
 
     // --- Smooth Scroll for Anchor Links (Optional fix for fixed header offset) ---
