@@ -12,8 +12,13 @@ const partnerService = {
     return response.data;
   },
 
-  approve: async (id) => {
-    const response = await api.put(`/partners/${id}/approve`);
+  approve: async (id, consultantId) => {
+    const response = await api.put(`/partners/${id}/approve`, { consultantId });
+    return response.data;
+  },
+
+  getConsultants: async () => {
+    const response = await api.get('/partners/consultants');
     return response.data;
   },
 

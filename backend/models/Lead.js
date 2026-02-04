@@ -37,6 +37,10 @@ const Lead = sequelize.define('Lead', {
     type: DataTypes.STRING,
     allowNull: true // CPF or CNPJ
   },
+  observation: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
   status: {
     type: DataTypes.ENUM('new', 'contact', 'negotiation', 'converted', 'lost'),
     defaultValue: 'new'

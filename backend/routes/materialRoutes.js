@@ -9,9 +9,9 @@ router.use(auth);
 // Rotas de leitura (Admin e Parceiro)
 router.get('/', materialController.getAllMaterials);
 
-// Rotas de escrita (Apenas Admin)
-router.post('/', authorize(['admin']), materialController.createMaterial);
-router.put('/:id', authorize(['admin']), materialController.updateMaterial);
-router.delete('/:id', authorize(['admin']), materialController.deleteMaterial);
+// Rotas de escrita (Apenas Admin e Consultor)
+router.post('/', authorize(['admin', 'consultor']), materialController.createMaterial);
+router.put('/:id', authorize(['admin', 'consultor']), materialController.updateMaterial);
+router.delete('/:id', authorize(['admin', 'consultor']), materialController.deleteMaterial);
 
 module.exports = router;

@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Users, FileText, Wallet, LogOut, User } from 'lucide-react';
+import { LayoutDashboard, Users, FileText, Wallet, LogOut, User, Shield } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Sidebar = ({ role }) => {
@@ -16,13 +16,14 @@ const Sidebar = ({ role }) => {
 
   const adminLinks = [
     { to: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
+    ...(role === 'admin' ? [{ to: '/admin/users', icon: Shield, label: 'Usuários' }] : []),
     { to: '/admin/partners', icon: Users, label: 'Parceiros' },
     { to: '/admin/leads', icon: FileText, label: 'Leads' },
     { to: '/admin/transactions', icon: Wallet, label: 'Movimentações' },
     { to: '/admin/materials', icon: FileText, label: 'Materiais' },
   ];
 
-  const links = role === 'admin' ? adminLinks : partnerLinks;
+  const links = (role === 'admin' || role === 'consultor') ? adminLinks : partnerLinks;
 
   return (
     <div className="hidden md:flex flex-col w-64 bg-white border-r border-gray-200 h-screen fixed left-0 top-0">

@@ -9,9 +9,9 @@ router.use(auth);
 // mas vamos ser explícitos se necessário. Se authorize filtrar, ok.
 // Se authorize(['admin', 'partner']) for usado, ambos passam.
 
-router.get('/', authorize(['admin', 'partner']), leadController.list);
-router.post('/', authorize(['admin', 'partner']), leadController.create);
-router.put('/:id', authorize(['admin', 'partner']), leadController.update);
-router.delete('/:id', authorize(['admin', 'partner']), leadController.delete);
+router.get('/', authorize(['admin', 'partner', 'consultor']), leadController.list);
+router.post('/', authorize(['admin', 'partner', 'consultor']), leadController.create);
+router.put('/:id', authorize(['admin', 'partner', 'consultor']), leadController.update);
+router.delete('/:id', authorize(['admin', 'partner', 'consultor']), leadController.delete);
 
 module.exports = router;

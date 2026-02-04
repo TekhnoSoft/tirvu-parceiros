@@ -43,10 +43,20 @@ const Partner = sequelize.define('Partner', {
   rejectionReason: {
     type: DataTypes.TEXT,
     allowNull: true
+  },
+  consultantId: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: {
+      model: User,
+      key: 'id'
+    }
   }
 });
 
 Partner.belongsTo(User, { foreignKey: 'userId' });
+Partner.belongsTo(User, { as: 'Consultant', foreignKey: 'consultantId' });
 User.hasOne(Partner, { foreignKey: 'userId' });
+User.hasMany(Partner, { as: 'ConsultedPartners', foreignKey: 'consultantId' });
 
 module.exports = Partner;

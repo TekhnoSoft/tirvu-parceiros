@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import { materialService } from '../services/materialService';
 import { 
@@ -138,17 +139,20 @@ const Materials = () => {
     }
   };
 
+  const handleDownload = (material) => {
+    const link = document.createElement('a');
+    link.href = material.content;
+    link.download = material.title || 'download';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const handleView = (material) => {
     if (material.type === 'link') {
       window.open(material.url, '_blank');
     } else if (material.type === 'document') {
-        // Create a temporary link to download
-        const link = document.createElement('a');
-        link.href = material.content;
-        link.download = material.title || 'documento';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        handleDownload(material);
     } else {
       setViewMaterial(material);
     }
@@ -253,16 +257,31 @@ const Materials = () => {
                 </div>
                 <p className="text-sm text-gray-500 line-clamp-2 h-10 mb-4">{material.description}</p>
                 
-                <button 
-                  onClick={() => handleView(material)}
-                  className="w-full py-2 px-4 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
-                >
-                  {material.type === 'video' ? <><Eye className="w-4 h-4" /> Assistir</> :
-                   material.type === 'link' ? <><ExternalLink className="w-4 h-4" /> Acessar</> :
-                   material.type === 'document' ? <><Download className="w-4 h-4" /> Baixar</> :
-                   material.type === 'image' ? <><Eye className="w-4 h-4" /> Visualizar</> :
-                   <><Eye className="w-4 h-4" /> Ler</>}
-                </button>
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => handleView(material)}
+                    className="flex-1 py-2 px-4 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                  >
+                    {material.type === 'video' ? <><Eye className="w-4 h-4" /> Assistir</> :
+                    material.type === 'link' ? <><ExternalLink className="w-4 h-4" /> Acessar</> :
+                    material.type === 'document' ? <><Download className="w-4 h-4" /> Baixar</> :
+                    material.type === 'image' ? <><Eye className="w-4 h-4" /> Visualizar</> :
+                    <><Eye className="w-4 h-4" /> Ler</>}
+                  </button>
+
+                  {material.type === 'image' && (
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDownload(material);
+                      }}
+                      className="px-4 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg transition-colors flex items-center justify-center"
+                      title="Baixar"
+                    >
+                      <Download className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           ))}
@@ -270,8 +289,8 @@ const Materials = () => {
       )}
 
       {/* Add/Edit Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+      {isModalOpen && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="bg-white rounded-xl w-full max-w-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
             <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
               <h2 className="text-lg font-bold text-gray-900">
@@ -282,7 +301,7 @@ const Materials = () => {
               </button>
             </div>
             
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Título</label>
                 <input
@@ -382,12 +401,13 @@ const Materials = () => {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* View Material Modal (Video/Text/Image) */}
-      {viewMaterial && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={() => setViewMaterial(null)}>
+      {viewMaterial && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={() => setViewMaterial(null)}>
           <div className="bg-white rounded-xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl relative" onClick={e => e.stopPropagation()}>
             <button 
                 onClick={() => setViewMaterial(null)}
@@ -421,13 +441,25 @@ const Materials = () => {
             ) : null}
             
             {viewMaterial.type !== 'text' && (
-                <div className="p-4 bg-white border-t border-gray-100">
-                    <h3 className="font-bold text-lg">{viewMaterial.title}</h3>
-                    <p className="text-gray-600 text-sm mt-1">{viewMaterial.description}</p>
+                <div className="p-4 bg-white border-t border-gray-100 flex justify-between items-center gap-4">
+                    <div>
+                        <h3 className="font-bold text-lg">{viewMaterial.title}</h3>
+                        <p className="text-gray-600 text-sm mt-1">{viewMaterial.description}</p>
+                    </div>
+                    {viewMaterial.type === 'image' && (
+                        <button 
+                            onClick={() => handleDownload(viewMaterial)}
+                            className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors whitespace-nowrap"
+                        >
+                            <Download className="w-4 h-4" />
+                            <span className="hidden sm:inline">Baixar</span>
+                        </button>
+                    )}
                 </div>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

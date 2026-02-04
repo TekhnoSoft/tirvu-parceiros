@@ -7,6 +7,7 @@ import DashboardLayout from './layouts/DashboardLayout';
 import PartnerDashboard from './pages/PartnerDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminPartners from './pages/AdminPartners';
+import AdminUsers from './pages/AdminUsers';
 import Finance from './pages/Finance';
 import Materials from './pages/Materials';
 import Leads from './pages/Leads';
@@ -35,10 +36,14 @@ function App() {
           </Route>
 
           {/* Admin Routes */}
-          <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+          <Route element={<ProtectedRoute allowedRoles={['admin', 'consultor']} />}>
             <Route path="/admin" element={<DashboardLayout />}>
               <Route index element={<AdminDashboard />} />
               <Route path="partners" element={<AdminPartners />} />
+              {/* Only Admin can access users management */}
+              <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+                <Route path="users" element={<AdminUsers />} />
+              </Route>
               <Route path="leads" element={<Leads />} />
               <Route path="transactions" element={<Finance />} />
               <Route path="materials" element={<Materials />} />

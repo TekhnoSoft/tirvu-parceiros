@@ -10,7 +10,8 @@ import {
     TrendingUp, 
     TrendingDown,
     FileText,
-    Filter
+    Filter,
+    Loader2
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -97,21 +98,21 @@ const Finance = () => {
             </div>
 
             {/* Filters */}
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-wrap gap-4 items-end">
-                <div>
+            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col sm:flex-row gap-4 items-end">
+                <div className="w-full sm:w-auto">
                     <label className="block text-xs font-medium text-gray-700 mb-1">Data Início</label>
                     <input 
                         type="date" 
-                        className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
+                        className="w-full sm:w-auto border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
                         value={filters.startDate}
                         onChange={(e) => setFilters({...filters, startDate: e.target.value})}
                     />
                 </div>
-                <div>
+                <div className="w-full sm:w-auto">
                     <label className="block text-xs font-medium text-gray-700 mb-1">Data Fim</label>
                     <input 
                         type="date" 
-                        className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
+                        className="w-full sm:w-auto border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
                         value={filters.endDate}
                         onChange={(e) => setFilters({...filters, endDate: e.target.value})}
                     />
@@ -119,14 +120,80 @@ const Finance = () => {
                 
                 <button 
                     onClick={() => setFilters({ startDate: '', endDate: '', partnerId: '' })}
-                    className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-50"
+                    className="w-full sm:w-auto px-4 py-2 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-50"
                 >
                     Limpar Filtros
                 </button>
             </div>
 
-            {/* Table */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            {/* Mobile Cards */}
+            <div className="sm:hidden space-y-4">
+                {loading ? (
+                    <div className="flex justify-center items-center py-12">
+                        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                    </div>
+                ) : movements.length === 0 ? (
+                    <div className="py-12 text-center text-gray-500">
+                        Nenhuma movimentação encontrada.
+                    </div>
+                ) : (
+                    movements.map((mov) => (
+                        <div key={mov.id} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 space-y-4">
+                            <div className="flex justify-between items-start">
+                                <div className="space-y-1">
+                                    <div className="text-sm text-gray-500">{formatDate(mov.date)}</div>
+                                    <div className="font-medium text-gray-900 flex items-center gap-2">
+                                        {mov.type === 'commission' || mov.type === 'credit' ? (
+                                            <TrendingUp className="w-4 h-4 text-green-500" />
+                                        ) : (
+                                            <TrendingDown className="w-4 h-4 text-red-500" />
+                                        )}
+                                        {mov.description}
+                                    </div>
+                                </div>
+                                <div className={`text-lg font-bold ${
+                                    mov.type === 'commission' || mov.type === 'credit' ? 'text-green-600' : 'text-red-600'
+                                }`}>
+                                    {mov.type === 'debit' ? '-' : '+'} {formatCurrency(mov.value)}
+                                </div>
+                            </div>
+
+                            {user.role === 'admin' && (
+                                <div className="text-sm bg-gray-50 p-2 rounded-lg">
+                                    <p className="font-medium text-gray-900">{mov.partnerName}</p>
+                                    <p className="text-xs text-gray-500">{mov.partnerEmail}</p>
+                                </div>
+                            )}
+
+                            <div className="flex justify-between items-center pt-2 border-t border-gray-50">
+                                <div>
+                                    {mov.status === 'paid' ? (
+                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                            Pago
+                                        </span>
+                                    ) : (
+                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                            Pendente
+                                        </span>
+                                    )}
+                                </div>
+                                {mov.hasProof && (
+                                    <button 
+                                        onClick={() => handleDownloadProof(mov)}
+                                        className="flex items-center gap-2 px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                    >
+                                        <Download className="w-4 h-4" />
+                                        Comprovante
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    ))
+                )}
+            </div>
+
+            {/* Desktop Table */}
+            <div className="hidden sm:block bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
                         <thead className="bg-gray-50 border-b border-gray-100">

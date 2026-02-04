@@ -26,13 +26,20 @@ exports.listPartners = async (req, res) => {
   
       const partners = await Partner.findAll({
       where: whereClause,
-      include: [{
-        model: User,
-        attributes: ['name', 'email'],
-        where: {
-          role: { [Op.ne]: 'admin' } // Oculta parceiros que são administradores
+      include: [
+        {
+          model: User,
+          attributes: ['name', 'email'],
+          where: {
+            role: { [Op.ne]: 'admin' } // Oculta parceiros que são administradores
+          }
+        },
+        {
+          model: User,
+          as: 'Consultant',
+          attributes: ['id', 'name', 'email']
         }
-      }],
+      ],
       order: [['createdAt', 'DESC']]
     });
 
@@ -43,9 +50,23 @@ exports.listPartners = async (req, res) => {
   }
 };
 
+exports.listConsultants = async (req, res) => {
+  try {
+    const consultants = await User.findAll({
+      where: { role: 'consultor' },
+      attributes: ['id', 'name', 'email']
+    });
+    res.json(consultants);
+  } catch (error) {
+    console.error('Erro ao listar consultores:', error);
+    res.status(500).json({ message: 'Erro ao listar consultores' });
+  }
+};
+
 exports.approvePartner = async (req, res) => {
   try {
     const { id } = req.params;
+    const { consultantId } = req.body;
     const partner = await Partner.findByPk(id, { include: [User] });
 
     if (!partner) {
@@ -66,9 +87,12 @@ exports.approvePartner = async (req, res) => {
     user.password = hashedPassword;
     await user.save();
 
-    // Atualizar Partner (status)
+    // Atualizar Partner (status e consultor)
     partner.status = 'approved';
     partner.rejectionReason = null; // Limpar motivo anterior se houver
+    if (consultantId) {
+      partner.consultantId = consultantId;
+    }
     await partner.save();
 
     // Enviar WhatsApp

@@ -9,12 +9,13 @@ router.use(auth);
 // Rotas para o próprio parceiro gerenciar seu perfil
 // GET /partners/profile -> Retorna dados do parceiro logado
 // PUT /partners/profile -> Atualiza dados do parceiro logado
-router.get('/profile', authorize(['partner', 'admin']), partnerController.getProfile);
-router.put('/profile', authorize(['partner', 'admin']), partnerController.updateProfile);
+router.get('/profile', authorize(['partner', 'admin', 'consultor']), partnerController.getProfile);
+router.put('/profile', authorize(['partner', 'admin', 'consultor']), partnerController.updateProfile);
 
-// Rotas administrativas (apenas admin)
-router.get('/', authorize(['admin']), partnerController.listPartners);
-router.put('/:id/approve', authorize(['admin']), partnerController.approvePartner);
-router.put('/:id/reject', authorize(['admin']), partnerController.rejectPartner);
+// Rotas administrativas (apenas admin e consultor)
+router.get('/consultants', authorize(['admin', 'consultor']), partnerController.listConsultants);
+router.get('/', authorize(['admin', 'consultor']), partnerController.listPartners);
+router.put('/:id/approve', authorize(['admin', 'consultor']), partnerController.approvePartner);
+router.put('/:id/reject', authorize(['admin', 'consultor']), partnerController.rejectPartner);
 
 module.exports = router;

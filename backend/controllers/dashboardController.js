@@ -53,11 +53,46 @@ exports.getPartnerDashboard = async (req, res) => {
     const balance = Number(totalEarnings) - Number(totalReceived);
 
     // Recent Transactions
-    const recentTransactions = await Transaction.findAll({
+    // 1. Get explicit transactions
+    const transactions = await Transaction.findAll({
       where: { partnerId: partner.id },
       order: [['date', 'DESC']],
       limit: 5
     });
+
+    // 2. Get recent commissions (closed leads)
+    const recentLeads = await Lead.findAll({
+      where: { 
+        partnerId: partner.id,
+        saleClosed: true,
+        commissionValue: { [Op.gt]: 0 }
+      },
+      order: [['updatedAt', 'DESC']],
+      limit: 5
+    });
+
+    // 3. Merge and normalize
+    const formattedTransactions = [
+      ...transactions.map(tx => ({
+        id: `tx-${tx.id}`,
+        description: tx.description,
+        date: tx.date,
+        type: tx.type,
+        amount: tx.amount
+      })),
+      ...recentLeads.map(lead => ({
+        id: `lead-${lead.id}`,
+        description: `Comissão - ${lead.name}`,
+        date: lead.updatedAt,
+        type: 'credit',
+        amount: lead.commissionValue
+      }))
+    ];
+
+    // 4. Sort by date desc and limit to 5
+    const recentTransactions = formattedTransactions
+      .sort((a, b) => new Date(b.date) - new Date(a.date))
+      .slice(0, 5);
 
     res.json({
       kpis: {

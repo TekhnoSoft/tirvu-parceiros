@@ -6,7 +6,7 @@ const { Op } = require('sequelize');
 
 exports.create = async (req, res) => {
   try {
-    const { name, email, phone, company, type, document, value, status } = req.body;
+    const { name, email, phone, company, type, document, value, status, observation } = req.body;
     
     // Se for admin, pode passar o partnerId no body, senão pega do usuário logado
     let partnerId = req.body.partnerId;
@@ -52,7 +52,8 @@ exports.create = async (req, res) => {
       type,
       document,
       value: value || 0,
-      status
+      status,
+      observation
     });
 
     res.status(201).json(lead);
@@ -108,7 +109,7 @@ exports.list = async (req, res) => {
 exports.update = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, email, phone, company, type, document, value, status, paymentStatus, saleValue, commissionPercentage, commissionValue } = req.body;
+    const { name, email, phone, company, type, document, value, status, paymentStatus, saleValue, commissionPercentage, commissionValue, observation } = req.body;
 
     const lead = await Lead.findByPk(id);
     if (!lead) return res.status(404).json({ message: 'Lead não encontrado.' });
@@ -130,6 +131,7 @@ exports.update = async (req, res) => {
       document, 
       value: value || 0, 
       status,
+      observation,
       saleClosed: req.body.saleClosed !== undefined ? req.body.saleClosed : lead.saleClosed,
       paymentStatus: paymentStatus !== undefined ? paymentStatus : lead.paymentStatus,
       saleValue: saleValue !== undefined ? saleValue : lead.saleValue,

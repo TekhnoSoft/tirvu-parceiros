@@ -14,7 +14,8 @@ import {
 const AdminPartners = () => {
   const [partners, setPartners] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterStatus, setFilterStatus] = useState('pending');
+  const [refreshInterval, setRefreshInterval] = useState(0); // 0 = off
   
   // Date Filter State
   const [dateFilterMode, setDateFilterMode] = useState('monthly'); // 'daily', 'weekly', 'monthly', 'yearly', 'last12', 'all'
@@ -153,27 +154,51 @@ const AdminPartners = () => {
   const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
+  
+  // Consultant Selection State
+  const [consultants, setConsultants] = useState([]);
+  const [selectedConsultant, setSelectedConsultant] = useState('');
 
   useEffect(() => {
     fetchPartners();
+    fetchConsultants();
   }, [startDate, endDate]); // Refetch when date range changes
 
-  const fetchPartners = async () => {
+  const fetchConsultants = async () => {
     try {
-      setLoading(true);
+      const data = await partnerService.getConsultants();
+      setConsultants(data);
+    } catch (error) {
+      console.error('Erro ao buscar consultores:', error);
+    }
+  };
+
+  const fetchPartners = async (silent = false) => {
+    try {
+      if (!silent) setLoading(true);
       const data = await partnerService.list('all', startDate, endDate);
       setPartners(data);
     } catch (error) {
       console.error('Erro ao buscar parceiros:', error);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
+
+  // Auto-refresh logic
+  useEffect(() => {
+    if (refreshInterval > 0) {
+      const interval = setInterval(() => {
+        fetchPartners(true);
+      }, refreshInterval * 60 * 1000);
+      return () => clearInterval(interval);
+    }
+  }, [refreshInterval, startDate, endDate]);
 
   const handleApprove = async () => {
     try {
       setActionLoading(true);
-      await partnerService.approve(selectedPartner.id);
+      await partnerService.approve(selectedPartner.id, selectedConsultant);
       await fetchPartners(); // Refresh list
       setIsApproveModalOpen(false);
       toast.success('Parceiro aprovado com sucesso! Credenciais enviadas via WhatsApp.');
@@ -193,6 +218,7 @@ const AdminPartners = () => {
 
   const openApproveModal = (partner) => {
     setSelectedPartner(partner);
+    setSelectedConsultant('');
     setIsApproveModalOpen(true);
   };
 
@@ -247,7 +273,7 @@ const AdminPartners = () => {
           
           {/* Date Navigator */}
           <div className="relative" ref={dateDropdownRef}>
-            <div className="flex items-center bg-white rounded-lg shadow-sm border border-gray-200 p-1">
+            <div className="flex items-center bg-white rounded-lg shadow-sm border border-gray-200 p-1 w-full sm:w-auto justify-between sm:justify-start">
               <button 
                 onClick={handlePrev}
                 disabled={dateFilterMode === 'all' || dateFilterMode === 'last12'}
@@ -261,7 +287,7 @@ const AdminPartners = () => {
               
               <button
                 onClick={() => setIsDateDropdownOpen(!isDateDropdownOpen)}
-                className="px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-md flex items-center gap-2 min-w-[140px] justify-center"
+                className="flex-1 sm:flex-none px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-md flex items-center justify-center gap-2 min-w-[140px]"
               >
                 <span className="capitalize">{getLabel()}</span>
                 <ChevronDown className="w-3 h-3 text-gray-400" />
@@ -358,11 +384,22 @@ const AdminPartners = () => {
             <option value="approved">Aprovados</option>
             <option value="rejected">Reprovados</option>
           </select>
+
+          <select
+            className="pl-3 pr-8 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none bg-white"
+            value={refreshInterval}
+            onChange={(e) => setRefreshInterval(Number(e.target.value))}
+          >
+            <option value={0}>Atualização Manual</option>
+            <option value={1}>Atualizar: 1 min</option>
+            <option value={5}>Atualizar: 5 min</option>
+            <option value={10}>Atualizar: 10 min</option>
+          </select>
         </div>
       </div>
 
-      {/* Tabela */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      {/* Tabela - Desktop */}
+      <div className="hidden sm:block bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         {loading ? (
           <div className="flex justify-center items-center p-12">
             <Loader2 className="w-8 h-8 text-primary animate-spin" />
@@ -437,6 +474,79 @@ const AdminPartners = () => {
               </tbody>
             </table>
           </div>
+        )}
+      </div>
+
+      {/* Lista - Mobile */}
+      <div className="sm:hidden space-y-4">
+        {loading ? (
+            <div className="flex justify-center items-center py-12">
+            <Loader2 className="w-8 h-8 text-primary animate-spin" />
+            </div>
+        ) : filteredPartners.length === 0 ? (
+            <div className="py-12 text-center text-gray-500">
+            Nenhum parceiro encontrado.
+            </div>
+        ) : (
+            filteredPartners.map((partner) => (
+            <div key={partner.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 space-y-4">
+                {/* Header: Avatar, Name, ID, Status */}
+                <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                            {partner.User.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                            <div className="text-sm font-medium text-gray-900">{partner.User.name}</div>
+                            <div className="text-xs text-gray-500">ID: #{partner.id}</div>
+                        </div>
+                    </div>
+                    <div>{getStatusBadge(partner.status)}</div>
+                </div>
+
+                {/* Info Grid */}
+                <div className="grid grid-cols-1 gap-2 text-sm text-gray-600">
+                    <div className="flex items-center gap-2">
+                        <span className="font-medium text-gray-700">Email:</span>
+                        <span className="truncate">{partner.User.email}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <span className="font-medium text-gray-700">Telefone:</span>
+                        <span>{partner.phone}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <span className="font-medium text-gray-700">Local:</span>
+                        <span>{partner.city} - {partner.uf}</span>
+                    </div>
+                    {partner.status === 'rejected' && partner.rejectionReason && (
+                         <div className="flex flex-col gap-1 bg-red-50 p-2 rounded text-xs text-red-700 mt-1">
+                           <span className="font-semibold">Motivo da Reprovação:</span>
+                           <span>{partner.rejectionReason}</span>
+                         </div>
+                    )}
+                </div>
+
+                {/* Actions */}
+                {partner.status === 'pending' && (
+                    <div className="flex gap-2 pt-2 border-t border-gray-100">
+                        <button
+                        onClick={() => openApproveModal(partner)}
+                        disabled={actionLoading}
+                        className="flex-1 text-green-700 bg-green-50 hover:bg-green-100 px-3 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                        >
+                        Aprovar
+                        </button>
+                        <button
+                        onClick={() => openRejectModal(partner)}
+                        disabled={actionLoading}
+                        className="flex-1 text-red-700 bg-red-50 hover:bg-red-100 px-3 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                        >
+                        Reprovar
+                        </button>
+                    </div>
+                )}
+            </div>
+            ))
         )}
       </div>
 
@@ -529,6 +639,24 @@ const AdminPartners = () => {
                       Uma senha será gerada automaticamente e enviada para o WhatsApp do parceiro junto com as instruções de acesso.
                     </p>
                   </div>
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Vincular Consultor (Opcional)
+                    </label>
+                    <select
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors"
+                        value={selectedConsultant}
+                        onChange={(e) => setSelectedConsultant(e.target.value)}
+                    >
+                        <option value="">Nenhum consultor vinculado</option>
+                        {consultants.map(consultant => (
+                            <option key={consultant.id} value={consultant.id}>
+                                {consultant.name}
+                            </option>
+                        ))}
+                    </select>
                 </div>
               </div>
               

@@ -7,6 +7,6 @@ const { auth, authorize } = require('../middleware/auth');
 router.get('/partner', auth, authorize('partner'), getPartnerDashboard);
 
 // Admin Dashboard
-router.get('/admin', auth, authorize('admin'), getAdminDashboard);
+router.get('/admin', auth, authorize(['admin', 'consultor']), getAdminDashboard);
 
 module.exports = router;

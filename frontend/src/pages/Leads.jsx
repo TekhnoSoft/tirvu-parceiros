@@ -247,10 +247,12 @@ const Leads = () => {
     email: '',
     phone: '',
     company: '',
-    type: 'PF',
+    type: 'PJ',
     document: '',
     value: '',
-    status: 'new'
+    status: 'new',
+    observation: '',
+    authorization: false
   });
 
   const fetchLeads = async () => {
@@ -279,11 +281,13 @@ const Leads = () => {
         email: lead.email || '',
         phone: lead.phone || '',
         company: lead.company || '',
-        type: lead.type || 'PF',
+        type: lead.type || 'PJ',
         document: lead.document || '',
         value: lead.value || '',
         status: lead.status || 'new',
-        partnerId: lead.partnerId || ''
+        partnerId: lead.partnerId || '',
+        observation: lead.observation || '',
+        authorization: true // Assuming if editing, it was already authorized or doesn't need re-auth? Or maybe just set to true to avoid validation block on edit.
       });
     } else {
       setCurrentLead(null);
@@ -292,11 +296,13 @@ const Leads = () => {
         email: '',
         phone: '',
         company: '',
-        type: 'PF',
+        type: 'PJ',
         document: '',
         value: '',
         status: 'new',
-        partnerId: ''
+        partnerId: '',
+        observation: '',
+        authorization: false
       });
     }
     setIsModalOpen(true);
@@ -1070,9 +1076,10 @@ const Leads = () => {
                   />
                 </div>
                 <div>
-                   <label className="block text-sm font-medium text-gray-700 mb-1">Empresa {formData.type === 'PF' && '(Opcional)'}</label>
+                   <label className="block text-sm font-medium text-gray-700 mb-1">Empresa *</label>
                    <input
                     type="text"
+                    required
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary outline-none"
                     value={formData.company}
                     onChange={(e) => setFormData({ ...formData, company: e.target.value })}
@@ -1083,9 +1090,10 @@ const Leads = () => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
                   <input
                     type="email"
+                    required
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary outline-none"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -1093,14 +1101,44 @@ const Leads = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Telefone</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Telefone *</label>
                   <input
                     type="text"
+                    required
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary outline-none"
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: maskPhone(e.target.value) })}
                     placeholder="(00) 00000-0000"
                   />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Observação</label>
+                <textarea
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary outline-none resize-none h-24"
+                  value={formData.observation}
+                  onChange={(e) => setFormData({ ...formData, observation: e.target.value })}
+                  placeholder="Fale mais do lead, melhor horario para contato, interesses etc...."
+                />
+              </div>
+
+              <div className="flex items-start gap-2 pt-2">
+                <div className="flex items-center h-5">
+                  <input
+                    id="authorization"
+                    name="authorization"
+                    type="checkbox"
+                    required
+                    checked={formData.authorization}
+                    onChange={(e) => setFormData({ ...formData, authorization: e.target.checked })}
+                    className="focus:ring-primary h-4 w-4 text-primary border-gray-300 rounded"
+                  />
+                </div>
+                <div className="ml-2 text-sm">
+                  <label htmlFor="authorization" className="font-medium text-gray-700">
+                    Eu autorizo a tirvu falar em meu nome
+                  </label>
                 </div>
               </div>
 

@@ -70,9 +70,12 @@ const PixRequirementModal = ({ isOpen, onClose }) => {
                 <h2 className="text-xl font-bold text-red-800">Atenção Necessária</h2>
             </div>
             <p className="text-red-700 text-sm">
-                Para continuar utilizando a plataforma e receber suas comissões, é obrigatório cadastrar uma chave Pix válida.
-            </p>
-        </div>
+                    Para continuar utilizando a plataforma e receber suas comissões, é obrigatório cadastrar uma chave Pix válida.
+                </p>
+                <p className="text-red-700 text-sm mt-2 font-semibold">
+                    É obrigatório que a chave Pix esteja em seu nome. Caso contrário, a Tirvu não poderá efetuar o pagamento, visando segurança contra fraudes.
+                </p>
+            </div>
 
         {/* Body */}
         <div className="p-6">
