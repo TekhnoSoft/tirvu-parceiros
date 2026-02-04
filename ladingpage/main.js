@@ -244,7 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         try {
-            const response = await fetch('http://localhost:5000/api/public/partners/register', {
+            const response = await fetch('https://others-tirvu-parceiros-frontend.pvuzyy.easypanel.host/api/public/partners/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

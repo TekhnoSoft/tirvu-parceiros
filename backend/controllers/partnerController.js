@@ -96,7 +96,7 @@ exports.approvePartner = async (req, res) => {
     await partner.save();
 
     // Enviar WhatsApp
-    const message = `Olá ${user.name}, sua conta de parceiro Tirvu foi APROVADA! 🎉\n\nAcesse a plataforma em: http://parceiros.tirvu.com.br\nLogin: ${user.email}\nSenha: ${rawPassword}\n\nBem-vindo ao time!`;
+    const message = `Olá ${user.name}, sua conta de parceiro Tirvu foi APROVADA! 🎉\n\nAcesse a plataforma em: https://tirvu-parceiros-frontend.vercel.app/\nLogin: ${user.email}\nSenha: ${rawPassword}\n\nBem-vindo ao time!`;
     
     if (partner.phone) {
       await whatsappService.sendText(partner.phone, message);
