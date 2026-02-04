@@ -11,7 +11,7 @@ import toast from 'react-hot-toast';
 
 const Materials = () => {
   const { user } = useAuth();
-  const isAdmin = user?.role === 'admin';
+  const canEdit = user?.role === 'admin' || user?.role === 'consultor';
   
   const [materials, setMaterials] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -187,7 +187,7 @@ const Materials = () => {
           <p className="text-gray-500 mt-1">Acesse documentos, vídeos e informativos.</p>
         </div>
         
-        {isAdmin && (
+        {canEdit && (
           <button
             onClick={() => handleOpenModal()}
             className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors"
@@ -244,7 +244,7 @@ const Materials = () => {
               <div className="p-5">
                 <div className="flex justify-between items-start">
                     <h3 className="font-semibold text-gray-900 line-clamp-1 mb-1" title={material.title}>{material.title}</h3>
-                    {isAdmin && (
+                    {canEdit && (
                         <div className="flex gap-1">
                             <button onClick={() => handleOpenModal(material)} className="p-1 text-gray-400 hover:text-blue-600 rounded">
                                 <Edit className="w-4 h-4" />
