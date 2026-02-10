@@ -3,6 +3,7 @@ const Partner = require('../models/Partner');
 const User = require('../models/User');
 const whatsappService = require('../services/whatsappService');
 const { Op } = require('sequelize');
+const axios = require('axios');
 
 exports.create = async (req, res) => {
   try {
@@ -55,6 +56,22 @@ exports.create = async (req, res) => {
       status,
       observation
     });
+
+    // Enviar Webhook N8N
+    try {
+      await axios.post('https://tirvu.app.n8n.cloud/webhook-test/tirvu/indicacoes/novo', {
+        indicacao_id: lead.id,
+        partner_id: partnerId,
+        nome: name,
+        email: email,
+        telefone: phone,
+        empresa: company || "",
+        cargo: "", // Campo não existente no modelo
+        observacao: observation || ""
+      });
+    } catch (error) {
+      console.error('Erro ao enviar webhook N8N:', error.message);
+    }
 
     res.status(201).json(lead);
   } catch (error) {
