@@ -133,7 +133,7 @@ exports.list = async (req, res) => {
 exports.update = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, email, phone, company, type, document, value, status, paymentStatus, saleValue, commissionPercentage, commissionValue, observation } = req.body;
+    const { name, email, phone, company, type, document, value, status, paymentStatus, saleValue, commissionPercentage, commissionValue, observation, numberOfEmployees, speakOnBehalf } = req.body;
 
     const lead = await Lead.findByPk(id);
     if (!lead) return res.status(404).json({ message: 'Lead não encontrado.' });
@@ -143,6 +143,30 @@ exports.update = async (req, res) => {
       const partner = await Partner.findOne({ where: { userId: req.user.id } });
       if (lead.partnerId !== partner.id) {
         return res.status(403).json({ message: 'Acesso negado.' });
+      }
+
+      // Verificar limite de desmarcação de "falar em meu nome" se estiver alterando para false
+      if (speakOnBehalf === false && lead.speakOnBehalf !== false) {
+        const startOfMonth = new Date();
+        startOfMonth.setDate(1);
+        startOfMonth.setHours(0, 0, 0, 0);
+        
+        const endOfMonth = new Date(startOfMonth);
+        endOfMonth.setMonth(endOfMonth.getMonth() + 1);
+
+        const count = await Lead.count({
+          where: {
+            partnerId: partner.id,
+            speakOnBehalf: false,
+            createdAt: {
+              [Op.between]: [startOfMonth, endOfMonth]
+            }
+          }
+        });
+
+        if (count >= 10) {
+          return res.status(400).json({ message: 'Você atingiu o limite mensal de 10 leads sem autorização para a Tirvu falar em seu nome.' });
+        }
       }
     }
 
@@ -156,6 +180,8 @@ exports.update = async (req, res) => {
       value: value || 0, 
       status,
       observation,
+      numberOfEmployees,
+      speakOnBehalf: speakOnBehalf !== undefined ? speakOnBehalf : lead.speakOnBehalf,
       saleClosed: req.body.saleClosed !== undefined ? req.body.saleClosed : lead.saleClosed,
       paymentStatus: paymentStatus !== undefined ? paymentStatus : lead.paymentStatus,
       saleValue: saleValue !== undefined ? saleValue : lead.saleValue,

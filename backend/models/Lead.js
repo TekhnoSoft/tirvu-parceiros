@@ -72,6 +72,14 @@ const Lead = sequelize.define('Lead', {
   commissionProof: {
     type: DataTypes.TEXT('long'), // Base64 do comprovante
     allowNull: true
+  },
+  numberOfEmployees: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  speakOnBehalf: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true
   }
 });
 

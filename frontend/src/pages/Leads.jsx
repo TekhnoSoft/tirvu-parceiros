@@ -252,7 +252,8 @@ const Leads = () => {
     value: '',
     status: 'new',
     observation: '',
-    authorization: false
+    speakOnBehalf: true,
+    numberOfEmployees: ''
   });
 
   const fetchLeads = async () => {
@@ -287,7 +288,8 @@ const Leads = () => {
         status: lead.status || 'new',
         partnerId: lead.partnerId || '',
         observation: lead.observation || '',
-        authorization: true // Assuming if editing, it was already authorized or doesn't need re-auth? Or maybe just set to true to avoid validation block on edit.
+        speakOnBehalf: lead.speakOnBehalf !== undefined ? lead.speakOnBehalf : true,
+        numberOfEmployees: lead.numberOfEmployees || ''
       });
     } else {
       setCurrentLead(null);
@@ -302,7 +304,8 @@ const Leads = () => {
         status: 'new',
         partnerId: '',
         observation: '',
-        authorization: false
+        speakOnBehalf: true,
+        numberOfEmployees: ''
       });
     }
     setIsModalOpen(true);
@@ -321,7 +324,11 @@ const Leads = () => {
       setIsModalOpen(false);
       fetchLeads();
     } catch (error) {
-      toast.error('Erro ao salvar lead.');
+      if (error.response && error.response.data && error.response.data.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error('Erro ao salvar lead.');
+      }
       console.error(error);
     }
   };
@@ -1090,10 +1097,9 @@ const Leads = () => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                   <input
                     type="email"
-                    required
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary outline-none"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -1114,6 +1120,17 @@ const Leads = () => {
               </div>
 
               <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Quantidade de funcionários (pode ser uma estimativa)</label>
+                <input
+                  type="text"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary outline-none"
+                  value={formData.numberOfEmployees}
+                  onChange={(e) => setFormData({ ...formData, numberOfEmployees: e.target.value })}
+                  placeholder="Ex: 10-20, Aprox 100"
+                />
+              </div>
+
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Observação</label>
                 <textarea
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary outline-none resize-none h-24"
@@ -1126,19 +1143,21 @@ const Leads = () => {
               <div className="flex items-start gap-2 pt-2">
                 <div className="flex items-center h-5">
                   <input
-                    id="authorization"
-                    name="authorization"
+                    id="speakOnBehalf"
+                    name="speakOnBehalf"
                     type="checkbox"
-                    required
-                    checked={formData.authorization}
-                    onChange={(e) => setFormData({ ...formData, authorization: e.target.checked })}
+                    checked={formData.speakOnBehalf}
+                    onChange={(e) => setFormData({ ...formData, speakOnBehalf: e.target.checked })}
                     className="focus:ring-primary h-4 w-4 text-primary border-gray-300 rounded"
                   />
                 </div>
                 <div className="ml-2 text-sm">
-                  <label htmlFor="authorization" className="font-medium text-gray-700">
+                  <label htmlFor="speakOnBehalf" className="font-medium text-gray-700">
                     Eu autorizo a tirvu falar em meu nome
                   </label>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Você pode desmarcar esta opção até 10 vezes por mês.
+                  </p>
                 </div>
               </div>
 
