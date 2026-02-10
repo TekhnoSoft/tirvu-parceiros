@@ -96,8 +96,11 @@ exports.create = async (req, res) => {
         const partnerUser = await User.findByPk(partnerUserId);
         if (partnerUser) {
           partnerName = partnerUser.name;
-          partnerPhone = partnerUser.phone;
         }
+      }
+
+      if (partnerData) {
+        partnerPhone = partnerData.phone;
       }
 
       await axios.post('https://tirvu.app.n8n.cloud/webhook-test/tirvu/indicacoes/novo', {
