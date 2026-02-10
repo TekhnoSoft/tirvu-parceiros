@@ -61,6 +61,7 @@ exports.create = async (req, res) => {
     try {
       const partnerData = await Partner.findByPk(partnerId);
       const partnerUserId = partnerData ? partnerData.userId : null;
+      const consultantId = partnerData ? partnerData.consultantId : null;
 
       await axios.post('https://tirvu.app.n8n.cloud/webhook-test/tirvu/indicacoes/novo', {
         indicacao_id: lead.id,
@@ -70,7 +71,10 @@ exports.create = async (req, res) => {
         telefone: phone,
         empresa: company || "",
         cargo: "", // Campo não existente no modelo
-        observacao: observation || ""
+        observacao: observation || "",
+        consultor_id: consultantId || 0,
+        nome_parceiro: consultantId ? (await User.findByPk(consultantId)).name : "",
+        telefone_parceiro: consultantId ? (await User.findByPk(consultantId)).phone : "",
       });
     } catch (error) {
       console.error('Erro ao enviar webhook N8N:', error.message);
