@@ -59,9 +59,12 @@ exports.create = async (req, res) => {
 
     // Enviar Webhook N8N
     try {
+      const partnerData = await Partner.findByPk(partnerId);
+      const partnerUserId = partnerData ? partnerData.userId : null;
+
       await axios.post('https://tirvu.app.n8n.cloud/webhook-test/tirvu/indicacoes/novo', {
         indicacao_id: lead.id,
-        partner_id: partnerId,
+        partner_id: partnerUserId ? partnerUserId : 0,
         nome: name,
         email: email,
         telefone: phone,
