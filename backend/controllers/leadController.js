@@ -7,7 +7,7 @@ const axios = require('axios');
 
 exports.create = async (req, res) => {
   try {
-    const { name, email, phone, company, type, document, value, status, observation } = req.body;
+    const { name, email, phone, company, type, document, value, status, observation, numberOfEmployees, speakOnBehalf } = req.body;
     
     // Se for admin, pode passar o partnerId no body, senão pega do usuário logado
     let partnerId = req.body.partnerId;
@@ -18,6 +18,30 @@ exports.create = async (req, res) => {
         return res.status(404).json({ message: 'Parceiro não encontrado para este usuário.' });
       }
       partnerId = partner.id;
+
+      // Verificar limite de desmarcação de "falar em meu nome"
+      if (speakOnBehalf === false) {
+        const startOfMonth = new Date();
+        startOfMonth.setDate(1);
+        startOfMonth.setHours(0, 0, 0, 0);
+        
+        const endOfMonth = new Date(startOfMonth);
+        endOfMonth.setMonth(endOfMonth.getMonth() + 1);
+
+        const count = await Lead.count({
+          where: {
+            partnerId: partner.id,
+            speakOnBehalf: false,
+            createdAt: {
+              [Op.between]: [startOfMonth, endOfMonth]
+            }
+          }
+        });
+
+        if (count >= 10) {
+          return res.status(400).json({ message: 'Você atingiu o limite mensal de 10 leads sem autorização para a Tirvu falar em seu nome.' });
+        }
+      }
     } else if (!partnerId) {
       // Se for admin e não enviou partnerId, tenta encontrar um partner associado ao admin
       let adminPartner = await Partner.findOne({ where: { userId: req.user.id } });
@@ -54,7 +78,9 @@ exports.create = async (req, res) => {
       document,
       value: value || 0,
       status,
-      observation
+      observation,
+      numberOfEmployees,
+      speakOnBehalf: speakOnBehalf !== undefined ? speakOnBehalf : true
     });
 
     // Enviar Webhook N8N
@@ -62,6 +88,17 @@ exports.create = async (req, res) => {
       const partnerData = await Partner.findByPk(partnerId);
       const partnerUserId = partnerData ? partnerData.userId : null;
       const consultantId = partnerData ? partnerData.consultantId : null;
+      
+      let partnerName = "";
+      let partnerPhone = "";
+      
+      if (partnerUserId) {
+        const partnerUser = await User.findByPk(partnerUserId);
+        if (partnerUser) {
+          partnerName = partnerUser.name;
+          partnerPhone = partnerUser.phone;
+        }
+      }
 
       await axios.post('https://tirvu.app.n8n.cloud/webhook-test/tirvu/indicacoes/novo', {
         indicacao_id: lead.id,
@@ -72,9 +109,11 @@ exports.create = async (req, res) => {
         empresa: company || "",
         cargo: "", // Campo não existente no modelo
         observacao: observation || "",
+        quantidade_funcionarios: numberOfEmployees || "",
+        pode_falar_em_nome: speakOnBehalf !== undefined ? speakOnBehalf : true,
         consultor_id: consultantId || 0,
-        nome_parceiro: consultantId ? (await User.findByPk(consultantId)).name : "",
-        telefone_parceiro: consultantId ? (await User.findByPk(consultantId)).phone : "",
+        nome_parceiro: partnerName,
+        telefone_parceiro: partnerPhone,
       });
     } catch (error) {
       console.error('Erro ao enviar webhook N8N:', error.message);
