@@ -10,6 +10,7 @@ const leadRoutes = require('./routes/leadRoutes');
 const financeRoutes = require('./routes/financeRoutes');
 const materialRoutes = require('./routes/materialRoutes');
 const userRoutes = require('./routes/userRoutes');
+const webhookRoutes = require('./routes/webhookRoutes');
 
 require('dotenv').config();
 
@@ -30,6 +31,7 @@ app.use('/api/leads', leadRoutes);
 app.use('/api/finance', financeRoutes);
 app.use('/api/materials', materialRoutes);
 app.use('/api/users', userRoutes);
+app.use('/webhook', webhookRoutes);
 
 // Base Route
 app.get('/', (req, res) => {
