@@ -5,9 +5,11 @@ import BottomNav from '../components/BottomNav';
 import PixRequirementModal from '../components/PixRequirementModal';
 import { useAuth } from '../context/AuthContext';
 import partnerService from '../services/partnerService';
+import { io } from 'socket.io-client';
+import { toast } from 'react-hot-toast';
 
 const DashboardLayout = () => {
-  const { user } = useAuth();
+  const { user, setUnreadMessages } = useAuth();
   const role = user?.role || 'partner';
   const [showPixModal, setShowPixModal] = useState(false);
 
@@ -17,6 +19,53 @@ const DashboardLayout = () => {
         checkPixStatus();
     }
   }, [role]);
+
+  // Global Socket Listener for Notifications
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    const socket = io('https://others-tirvu-parceiros-frontend.pvuzyy.easypanel.host' || 'http://localhost:5000', {
+      auth: { token }
+    });
+
+    socket.on('receive_message', (message) => {
+        // Play notification sound
+        const audio = new Audio('/notification.mp3');
+        audio.play().catch(e => console.log('Audio play failed', e));
+
+        // Show Toast
+        toast((t) => (
+            <div className="flex items-start gap-3" onClick={() => {
+                toast.dismiss(t.id);
+                // Optional: navigate to chat
+            }}>
+                <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold shrink-0">
+                    {message.Sender?.name?.charAt(0)}
+                </div>
+                <div>
+                    <p className="font-semibold text-sm">{message.Sender?.name}</p>
+                    <p className="text-sm text-gray-600 truncate max-w-[200px]">{message.content}</p>
+                </div>
+            </div>
+        ), {
+            duration: 5000,
+            position: 'top-right',
+            style: {
+                background: '#fff',
+                color: '#333',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                padding: '12px',
+                borderRadius: '12px'
+            }
+        });
+
+        // Increment unread count in context
+        setUnreadMessages(prev => prev + 1);
+    });
+
+    return () => socket.disconnect();
+  }, [setUnreadMessages]);
 
   const checkPixStatus = async () => {
     try {

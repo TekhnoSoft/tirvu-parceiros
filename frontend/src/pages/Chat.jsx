@@ -7,7 +7,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 const Chat = () => {
-  const { user } = useAuth();
+  const { user, setUnreadMessages } = useAuth();
   const [contacts, setContacts] = useState([]);
   const [activeContact, setActiveContact] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -17,6 +17,23 @@ const Chat = () => {
   const [onlineUsers, setOnlineUsers] = useState(new Set());
   const [socket, setSocket] = useState(null);
   const messagesEndRef = useRef(null);
+  const [loading, setLoading] = useState(true);
+  const [isMobileListOpen, setIsMobileListOpen] = useState(true);
+
+  // Reset global unread count when opening chat or selecting contact
+  useEffect(() => {
+    if (activeContact) {
+      if (setUnreadMessages) {
+        setUnreadMessages(prev => Math.max(0, prev - (unreadCounts[activeContact.id] || 0)));
+      }
+      
+      // Also update local unread counts
+      setUnreadCounts(prev => ({
+        ...prev,
+        [activeContact.id]: 0
+      }));
+    }
+  }, [activeContact, setUnreadMessages]);
 
   // Initialize Socket
   useEffect(() => {

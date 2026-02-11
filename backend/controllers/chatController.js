@@ -35,10 +35,8 @@ exports.getContacts = async (req, res) => {
         attributes: userAttributes
       });
 
-      // Merge and remove duplicates (though IDs should be unique across these sets)
-      const contactMap = new Map();
-      [...partnerUsers, ...admins].forEach(u => contactMap.set(u.id, u));
-      contacts = Array.from(contactMap.values());
+      // Merge
+      contacts = [...partnerUsers, ...admins];
 
     } else if (role === 'partner') {
       // Partner sees their Consultant and all Admins
@@ -57,14 +55,14 @@ exports.getContacts = async (req, res) => {
         attributes: userAttributes
       });
 
-      const contactMap = new Map();
-      [...contacts, ...admins].forEach(u => contactMap.set(u.id, u));
-      contacts = Array.from(contactMap.values());
+      contacts = [...contacts, ...admins];
     }
 
-    // Add last message or unread count if needed (optional for MVP, but good for UX)
-    // For now, just return list
-    res.json(contacts);
+    // Remove duplicates and Sort by name
+    const uniqueContacts = Array.from(new Map(contacts.map(c => [c.id, c])).values());
+    uniqueContacts.sort((a, b) => a.name.localeCompare(b.name));
+
+    res.json(uniqueContacts);
 
   } catch (error) {
     console.error('Error fetching contacts:', error);

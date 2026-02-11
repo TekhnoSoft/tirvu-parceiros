@@ -4,12 +4,12 @@ import { LayoutDashboard, Users, FileText, Wallet, LogOut, User, Shield, Message
 import { useAuth } from '../context/AuthContext';
 
 const Sidebar = ({ role }) => {
-  const { logout, user } = useAuth();
+  const { logout, user, unreadMessages } = useAuth();
 
   const partnerLinks = [
     { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/dashboard/leads', icon: Users, label: 'Leads' },
-    { to: '/dashboard/chat', icon: MessageSquare, label: 'Chat' },
+    { to: '/dashboard/chat', icon: MessageSquare, label: 'Chat', badge: unreadMessages },
     { to: '/dashboard/profile', icon: User, label: 'Meu Perfil' },
     { to: '/dashboard/transactions', icon: Wallet, label: 'Movimentações' },
     { to: '/dashboard/materials', icon: FileText, label: 'Materiais' },
@@ -22,7 +22,7 @@ const Sidebar = ({ role }) => {
       { to: '/admin/partners', icon: Users, label: 'Parceiros' }
     ] : []),
     { to: '/admin/leads', icon: FileText, label: 'Leads' },
-    { to: '/admin/chat', icon: MessageSquare, label: 'Chat' },
+    { to: '/admin/chat', icon: MessageSquare, label: 'Chat', badge: unreadMessages },
     { to: '/admin/transactions', icon: Wallet, label: 'Movimentações' },
     { to: '/admin/materials', icon: FileText, label: 'Materiais' },
   ];
@@ -43,7 +43,7 @@ const Sidebar = ({ role }) => {
                 to={link.to}
                 end={link.to === '/dashboard' || link.to === '/admin'}
                 className={({ isActive }) =>
-                  `flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors ${
+                  `flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors relative ${
                     isActive
                       ? 'bg-primary text-white shadow-md'
                       : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
@@ -52,6 +52,11 @@ const Sidebar = ({ role }) => {
               >
                 <link.icon className="mr-3 h-5 w-5" />
                 {link.label}
+                {link.badge > 0 && (
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[1.25rem] text-center">
+                    {link.badge}
+                  </span>
+                )}
               </NavLink>
             </li>
           ))}
