@@ -14,7 +14,6 @@ const User = sequelize.define('User', {
   email: {
     type: DataTypes.STRING,
     allowNull: false,
-    unique: true,
     validate: {
       isEmail: true
     }
@@ -27,6 +26,14 @@ const User = sequelize.define('User', {
     type: DataTypes.ENUM('admin', 'partner', 'consultor'),
     defaultValue: 'partner'
   }
+}, {
+  indexes: [
+    {
+      unique: true,
+      fields: ['email'],
+      name: 'unique_email_constraint'
+    }
+  ]
 });
 
 module.exports = User;

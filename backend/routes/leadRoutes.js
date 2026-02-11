@@ -14,4 +14,8 @@ router.post('/', authorize(['admin', 'partner', 'consultor']), leadController.cr
 router.put('/:id', authorize(['admin', 'partner', 'consultor']), leadController.update);
 router.delete('/:id', authorize(['admin', 'partner', 'consultor']), leadController.delete);
 
+// Notes routes
+router.get('/:id/notes', authorize(['admin', 'partner', 'consultor']), leadController.getNotes);
+router.post('/:id/notes', authorize(['admin', 'partner', 'consultor']), leadController.addNote);
+
 module.exports = router;

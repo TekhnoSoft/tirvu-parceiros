@@ -27,6 +27,16 @@ const leadService = {
 
   delete: async (id) => {
     await api.delete(`/leads/${id}`);
+  },
+
+  getNotes: async (id) => {
+    const response = await api.get(`/leads/${id}/notes`);
+    return response.data;
+  },
+
+  addNote: async (id, content) => {
+    const response = await api.post(`/leads/${id}/notes`, { content });
+    return response.data;
   }
 };
 

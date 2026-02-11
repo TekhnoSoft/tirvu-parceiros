@@ -4,6 +4,7 @@ const Partner = require('./Partner');
 const Lead = require('./Lead');
 const Transaction = require('./Transaction');
 const Material = require('./Material');
+const LeadNote = require('./LeadNote');
 
 // Associations are already defined in individual files, but we can double check or centralize here if needed.
 // However, requiring them executes the association logic in those files.
@@ -19,11 +20,16 @@ Lead.belongsTo(Partner, { foreignKey: 'partnerId' });
 Partner.hasMany(Transaction, { foreignKey: 'partnerId' });
 Transaction.belongsTo(Partner, { foreignKey: 'partnerId' });
 
+Lead.hasMany(LeadNote, { foreignKey: 'leadId', as: 'notes' });
+LeadNote.belongsTo(Lead, { foreignKey: 'leadId' });
+LeadNote.belongsTo(User, { foreignKey: 'userId', as: 'author' });
+
 module.exports = {
   sequelize,
   User,
   Partner,
   Lead,
   Transaction,
-  Material
+  Material,
+  LeadNote
 };

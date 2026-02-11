@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { 
   Search, Plus, Filter, MoreVertical, Edit2, Trash2, 
   User, Building, Phone, Mail, DollarSign, FileText, CheckCircle, X,
-  ChevronLeft, ChevronRight, Calendar, ChevronDown, AlertTriangle, Loader2
+  ChevronLeft, ChevronRight, Calendar, ChevronDown, AlertTriangle, Loader2, MessageSquare
 } from 'lucide-react';
 import leadService from '../services/leadService';
 import partnerService from '../services/partnerService';
@@ -47,6 +47,59 @@ const Leads = () => {
     commissionProof: null // File object
   });
   const [isSubmittingSale, setIsSubmittingSale] = useState(false);
+  
+  // Notes Modal State
+  const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
+  const [currentLeadForNotes, setCurrentLeadForNotes] = useState(null);
+  const [notesList, setNotesList] = useState([]);
+  const [newNoteContent, setNewNoteContent] = useState('');
+  const [isLoadingNotes, setIsLoadingNotes] = useState(false);
+  const [isSavingNote, setIsSavingNote] = useState(false);
+
+  const handleOpenNotes = async (lead) => {
+    setCurrentLeadForNotes(lead);
+    setIsNotesModalOpen(true);
+    setNotesList([]);
+    setIsLoadingNotes(true);
+    try {
+      const notes = await leadService.getNotes(lead.id);
+      setNotesList(notes);
+    } catch (error) {
+      toast.error('Erro ao carregar anotações');
+    } finally {
+      setIsLoadingNotes(false);
+    }
+  };
+
+  const handleSaveNote = async (e) => {
+    e.preventDefault();
+    if (!newNoteContent.trim()) return;
+
+    setIsSavingNote(true);
+    try {
+      const newNote = await leadService.addNote(currentLeadForNotes.id, newNoteContent);
+      setNotesList([newNote, ...notesList]);
+      setNewNoteContent('');
+      toast.success('Anotação adicionada!');
+      
+      // Update leads list count
+      setLeads(leads.map(l => {
+          if (l.id === currentLeadForNotes.id) {
+              return { ...l, notesCount: (l.notesCount || 0) + 1 };
+          }
+          return l;
+      }));
+    } catch (error) {
+      toast.error('Erro ao salvar anotação');
+    } finally {
+      setIsSavingNote(false);
+    }
+  };
+
+  // Helper function to format note date
+  const formatNoteDate = (dateString) => {
+    return format(new Date(dateString), "dd 'de' MMMM 'às' HH:mm", { locale: ptBR });
+  };
   
   // Partner Pix Key (fetched when modal opens)
   const [partnerPixKey, setPartnerPixKey] = useState('');
@@ -765,6 +818,7 @@ const Leads = () => {
                 <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Tipo</th>
                 {/* <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Valor</th> */}
                 <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center">Anotações</th>
                 <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Ações</th>
               </tr>
             </thead>
@@ -843,6 +897,20 @@ const Leads = () => {
                             </span>
                         )}
                        </div>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <button 
+                          onClick={() => handleOpenNotes(lead)}
+                          className="relative p-2 text-gray-400 hover:text-primary transition-colors group"
+                          title="Ver Anotações"
+                      >
+                          <MessageSquare className="w-5 h-5" />
+                          {lead.notesCount > 0 && (
+                              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                                  {lead.notesCount}
+                              </span>
+                          )}
+                      </button>
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
@@ -973,6 +1041,19 @@ const Leads = () => {
 
                     {/* Actions */}
                     <div className="flex items-center gap-2">
+                         {/* Notes Button */}
+                         <button 
+                            onClick={() => handleOpenNotes(lead)} 
+                            className="relative p-2 bg-gray-50 text-gray-400 rounded-lg hover:bg-gray-100"
+                        >
+                            <MessageSquare className="w-4 h-4" />
+                            {lead.notesCount > 0 && (
+                                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                                    {lead.notesCount}
+                                </span>
+                            )}
+                        </button>
+
                          {/* Sale Button (Admin) */}
                          {user?.role === 'admin' && (
                             <button 
@@ -1398,6 +1479,94 @@ const Leads = () => {
                 >
                     Reabrir
                 </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Notes Modal */}
+      {isNotesModalOpen && createPortal(
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] flex flex-col">
+            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50 rounded-t-xl">
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">Anotações</h3>
+                <p className="text-xs text-gray-500">{currentLeadForNotes?.name}</p>
+              </div>
+              <button onClick={() => setIsNotesModalOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                {/* Add Note Form */}
+                <form onSubmit={handleSaveNote} className="space-y-3">
+                    <label className="block text-sm font-medium text-gray-700">Nova Anotação</label>
+                    <textarea 
+                        value={newNoteContent}
+                        onChange={(e) => setNewNoteContent(e.target.value)}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary outline-none resize-none h-24"
+                        placeholder="Escreva sua anotação aqui..."
+                        required
+                    />
+                    <div className="flex justify-end">
+                        <button 
+                            type="submit" 
+                            disabled={isSavingNote || !newNoteContent.trim()}
+                            className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark font-medium disabled:opacity-50 flex items-center gap-2"
+                        >
+                            {isSavingNote ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    Salvando...
+                                </>
+                            ) : (
+                                <>
+                                    <Plus className="w-4 h-4" />
+                                    Adicionar
+                                </>
+                            )}
+                        </button>
+                    </div>
+                </form>
+
+                <div className="border-t border-gray-100 pt-4">
+                    <h4 className="text-sm font-bold text-gray-900 mb-4">Histórico</h4>
+                    
+                    {isLoadingNotes ? (
+                        <div className="flex justify-center py-8">
+                            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                        </div>
+                    ) : notesList.length === 0 ? (
+                        <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg border border-gray-100 border-dashed">
+                            <MessageSquare className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+                            <p>Nenhuma anotação encontrada.</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            {notesList.map((note) => (
+                                <div key={note.id} className="bg-gray-50 rounded-lg p-4 border border-gray-100">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">
+                                                {note.author?.name?.charAt(0) || 'U'}
+                                            </div>
+                                            <span className="text-sm font-medium text-gray-900">{note.author?.name || 'Usuário'}</span>
+                                            <span className="text-xs text-gray-500 px-1.5 py-0.5 bg-gray-200 rounded-full">
+                                                {note.author?.role === 'admin' ? 'Admin' : 'Parceiro'}
+                                            </span>
+                                        </div>
+                                        <span className="text-xs text-gray-400" title={format(new Date(note.createdAt), "dd/MM/yyyy HH:mm:ss")}>
+                                            {formatNoteDate(note.createdAt)}
+                                        </span>
+                                    </div>
+                                    <p className="text-sm text-gray-600 whitespace-pre-wrap">{note.content}</p>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
           </div>
         </div>,

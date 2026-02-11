@@ -1,8 +1,10 @@
 const Lead = require('../models/Lead');
+const LeadNote = require('../models/LeadNote');
 const Partner = require('../models/Partner');
 const User = require('../models/User');
 const whatsappService = require('../services/whatsappService');
 const { Op } = require('sequelize');
+const sequelize = require('../config/database'); // Import sequelize for literals
 const axios = require('axios');
 
 exports.create = async (req, res) => {
@@ -154,6 +156,19 @@ exports.list = async (req, res) => {
 
     const leads = await Lead.findAll({
       where: whereClause,
+      attributes: {
+        include: [
+          [
+            sequelize.literal(`(
+              SELECT COUNT(*)
+              FROM LeadNotes AS note
+              WHERE
+                note.leadId = Lead.id
+            )`),
+            'notesCount'
+          ]
+        ]
+      },
       order: [['createdAt', 'DESC']],
       include: [{ 
         model: Partner, 
@@ -169,6 +184,68 @@ exports.list = async (req, res) => {
   } catch (error) {
     console.error('Erro ao listar leads:', error);
     res.status(500).json({ message: 'Erro ao listar leads.' });
+  }
+};
+
+exports.addNote = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { content } = req.body;
+    const userId = req.user.id;
+
+    const lead = await Lead.findByPk(id);
+    if (!lead) return res.status(404).json({ message: 'Lead não encontrado.' });
+
+    // Verificar permissão (Partner só pode ver seus leads, Admin vê tudo)
+    if (req.user.role === 'partner') {
+      const partner = await Partner.findOne({ where: { userId } });
+      if (lead.partnerId !== partner.id) {
+        return res.status(403).json({ message: 'Acesso negado.' });
+      }
+    }
+
+    const note = await LeadNote.create({
+      leadId: id,
+      userId,
+      content
+    });
+
+    // Retornar a nota com dados do autor
+    const noteWithAuthor = await LeadNote.findByPk(note.id, {
+      include: [{ model: User, as: 'author', attributes: ['name', 'role'] }]
+    });
+
+    res.status(201).json(noteWithAuthor);
+  } catch (error) {
+    console.error('Erro ao adicionar nota:', error);
+    res.status(500).json({ message: 'Erro ao adicionar nota.' });
+  }
+};
+
+exports.getNotes = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const lead = await Lead.findByPk(id);
+    if (!lead) return res.status(404).json({ message: 'Lead não encontrado.' });
+
+    if (req.user.role === 'partner') {
+      const partner = await Partner.findOne({ where: { userId: req.user.id } });
+      if (lead.partnerId !== partner.id) {
+        return res.status(403).json({ message: 'Acesso negado.' });
+      }
+    }
+
+    const notes = await LeadNote.findAll({
+      where: { leadId: id },
+      include: [{ model: User, as: 'author', attributes: ['name', 'role'] }],
+      order: [['createdAt', 'DESC']]
+    });
+
+    res.json(notes);
+  } catch (error) {
+    console.error('Erro ao listar notas:', error);
+    res.status(500).json({ message: 'Erro ao listar notas.' });
   }
 };
 
