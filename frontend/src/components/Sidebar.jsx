@@ -1,15 +1,17 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Users, FileText, Wallet, LogOut, User, Shield, MessageSquare } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Sidebar = ({ role }) => {
   const { logout, user, unreadMessages } = useAuth();
+  const location = useLocation();
+  const isChatOpen = location.pathname.includes('/chat');
 
   const partnerLinks = [
     { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/dashboard/leads', icon: Users, label: 'Leads' },
-    { to: '/dashboard/chat', icon: MessageSquare, label: 'Chat', badge: unreadMessages },
+    { to: '/dashboard/chat', icon: MessageSquare, label: 'Chat', badge: isChatOpen ? 0 : unreadMessages },
     { to: '/dashboard/profile', icon: User, label: 'Meu Perfil' },
     { to: '/dashboard/transactions', icon: Wallet, label: 'Movimentações' },
     { to: '/dashboard/materials', icon: FileText, label: 'Materiais' },
@@ -22,7 +24,7 @@ const Sidebar = ({ role }) => {
       { to: '/admin/partners', icon: Users, label: 'Parceiros' }
     ] : []),
     { to: '/admin/leads', icon: FileText, label: 'Leads' },
-    { to: '/admin/chat', icon: MessageSquare, label: 'Chat', badge: unreadMessages },
+    { to: '/admin/chat', icon: MessageSquare, label: 'Chat', badge: isChatOpen ? 0 : unreadMessages },
     { to: '/admin/transactions', icon: Wallet, label: 'Movimentações' },
     { to: '/admin/materials', icon: FileText, label: 'Materiais' },
   ];
