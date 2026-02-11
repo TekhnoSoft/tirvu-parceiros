@@ -173,7 +173,7 @@ const handlePipedriveWebhook = async (req, res) => {
                 let dueDate = null;
                 if (due_date) {
                     const timePart = (due_time && due_time.value) ? due_time.value : '00:00:00';
-                    dueDate = new Date(`${due_date}T${timePart}-03:00`);
+                    dueDate = new Date(`${due_date}T${timePart}`);
                 }
 
                 // Prepare task data

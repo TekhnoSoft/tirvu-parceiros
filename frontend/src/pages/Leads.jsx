@@ -993,6 +993,11 @@ const Leads = () => {
                           title="Ver Tarefas"
                       >
                           <CheckSquare className="w-5 h-5" />
+                          {lead.tasksCount > 0 && (
+                              <span className="absolute -top-1 -right-1 bg-green-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                                  {lead.tasksCount}
+                              </span>
+                          )}
                       </button>
                     </td>
                     <td className="px-6 py-4 text-right">
@@ -1135,6 +1140,19 @@ const Leads = () => {
                             {lead.notesCount > 0 && (
                                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
                                     {lead.notesCount}
+                                </span>
+                            )}
+                        </button>
+
+                         {/* Tasks Button */}
+                         <button 
+                            onClick={() => handleOpenTasks(lead)} 
+                            className="relative p-2 bg-gray-50 text-gray-400 rounded-lg hover:bg-gray-100"
+                        >
+                            <CheckSquare className="w-4 h-4" />
+                            {lead.tasksCount > 0 && (
+                                <span className="absolute -top-1 -right-1 bg-green-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                                    {lead.tasksCount}
                                 </span>
                             )}
                         </button>
