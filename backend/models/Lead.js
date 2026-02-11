@@ -41,6 +41,10 @@ const Lead = sequelize.define('Lead', {
     type: DataTypes.STRING,
     allowNull: true
   },
+  refId: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
   observation: {
     type: DataTypes.TEXT,
     allowNull: true

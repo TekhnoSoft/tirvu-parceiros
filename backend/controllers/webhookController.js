@@ -31,6 +31,32 @@ const handlePipedriveWebhook = async (req, res) => {
         }
     }
 
+    // Special handling for refId update: { indicacao_id: '=32', deal_id: '=5647' }
+    if (payload.indicacao_id && payload.deal_id && 
+        typeof payload.indicacao_id === 'string' && payload.indicacao_id.startsWith('=') &&
+        typeof payload.deal_id === 'string' && payload.deal_id.startsWith('=')) {
+        
+        const leadId = payload.indicacao_id.substring(1); // Remove '='
+        const refId = payload.deal_id.substring(1);       // Remove '='
+        
+        console.log(`Processing refId update: Lead ID ${leadId}, Ref ID ${refId}`);
+
+        try {
+            const lead = await Lead.findByPk(leadId);
+            if (lead) {
+                await lead.update({ refId: refId });
+                console.log(`Lead ${leadId} updated with refId ${refId}`);
+                return res.status(200).json({ message: 'Lead refId updated successfully' });
+            } else {
+                console.log(`Lead ${leadId} not found for refId update`);
+                return res.status(404).json({ message: 'Lead not found' });
+            }
+        } catch (error) {
+            console.error('Error updating lead refId:', error);
+            return res.status(500).json({ message: 'Error updating lead' });
+        }
+    }
+
     // Extract relevant data
     // Support both direct fields (user example) and standard Pipedrive structure (current/previous)
     const dealId = payload.deal_id || (payload.current && payload.current.id);
