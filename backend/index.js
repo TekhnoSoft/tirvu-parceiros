@@ -14,7 +14,14 @@ const webhookRoutes = require('./routes/webhookRoutes');
 
 require('dotenv').config();
 
+const http = require('http');
+const initSocket = require('./socket/socketHandler');
+const chatRoutes = require('./routes/chatRoutes');
+
 const app = express();
+const server = http.createServer(app); // Create HTTP server
+const io = initSocket(server); // Initialize Socket.io
+
 const PORT = process.env.PORT || 5000;
 
 // Middleware
@@ -31,6 +38,7 @@ app.use('/api/leads', leadRoutes);
 app.use('/api/finance', financeRoutes);
 app.use('/api/materials', materialRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/chat', chatRoutes);
 app.use('/webhook', webhookRoutes);
 
 // Base Route
@@ -41,7 +49,7 @@ app.get('/', (req, res) => {
 // Sync Database and Start Server
 sequelize.sync({ alter: true }).then(() => {
   console.log('Database synced successfully');
-  app.listen(PORT, () => {
+  server.listen(PORT, () => { // Listen on server, not app
     console.log(`Server is running on port ${PORT}`);
   });
 }).catch(err => {

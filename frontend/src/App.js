@@ -12,6 +12,7 @@ import Finance from './pages/Finance';
 import Materials from './pages/Materials';
 import Leads from './pages/Leads';
 import Profile from './pages/Profile';
+import Chat from './pages/Chat';
 import Unauthorized from './pages/Unauthorized';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -29,6 +30,7 @@ function App() {
             <Route path="/dashboard" element={<DashboardLayout />}>
               <Route index element={<PartnerDashboard />} />
               <Route path="leads" element={<Leads />} />
+              <Route path="chat" element={<Chat />} />
               <Route path="profile" element={<Profile />} />
               <Route path="transactions" element={<Finance />} />
               <Route path="materials" element={<Materials />} />
@@ -45,6 +47,7 @@ function App() {
                 <Route path="partners" element={<AdminPartners />} />
               </Route>
               <Route path="leads" element={<Leads />} />
+              <Route path="chat" element={<Chat />} />
               <Route path="transactions" element={<Finance />} />
               <Route path="materials" element={<Materials />} />
             </Route>
