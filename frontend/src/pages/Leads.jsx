@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { 
   Search, Plus, Filter, MoreVertical, Edit2, Trash2, 
   User, Building, Phone, Mail, DollarSign, FileText, CheckCircle, X,
-  ChevronLeft, ChevronRight, Calendar, ChevronDown, AlertTriangle, Loader2, MessageSquare
+  ChevronLeft, ChevronRight, Calendar, ChevronDown, AlertTriangle, Loader2, MessageSquare, CheckSquare, Clock
 } from 'lucide-react';
 import leadService from '../services/leadService';
 import partnerService from '../services/partnerService';
@@ -55,6 +55,75 @@ const Leads = () => {
   const [newNoteContent, setNewNoteContent] = useState('');
   const [isLoadingNotes, setIsLoadingNotes] = useState(false);
   const [isSavingNote, setIsSavingNote] = useState(false);
+
+  // Tasks Modal State
+  const [isTasksModalOpen, setIsTasksModalOpen] = useState(false);
+  const [currentLeadForTasks, setCurrentLeadForTasks] = useState(null);
+  const [tasksList, setTasksList] = useState([]);
+  const [newTaskData, setNewTaskData] = useState({
+      title: '',
+      description: '',
+      dueDate: '',
+      duration: ''
+  });
+  const [isLoadingTasks, setIsLoadingTasks] = useState(false);
+  const [isSavingTask, setIsSavingTask] = useState(false);
+
+  const handleOpenTasks = async (lead) => {
+    setCurrentLeadForTasks(lead);
+    setIsTasksModalOpen(true);
+    setTasksList([]);
+    setNewTaskData({
+        title: '',
+        description: '',
+        dueDate: '',
+        duration: ''
+    });
+    setIsLoadingTasks(true);
+    try {
+      const tasks = await leadService.getTasks(lead.id);
+      setTasksList(tasks);
+    } catch (error) {
+      toast.error('Erro ao carregar tarefas');
+    } finally {
+      setIsLoadingTasks(false);
+    }
+  };
+
+  const handleSaveTask = async (e) => {
+      e.preventDefault();
+      if (!newTaskData.title || !newTaskData.dueDate) {
+          toast.error('Título e Data são obrigatórios.');
+          return;
+      }
+      
+      setIsSavingTask(true);
+      try {
+          const task = await leadService.addTask(currentLeadForTasks.id, newTaskData);
+          setTasksList([task, ...tasksList]);
+          setNewTaskData({
+            title: '',
+            description: '',
+            dueDate: '',
+            duration: ''
+        });
+          toast.success('Tarefa adicionada!');
+      } catch (error) {
+          toast.error('Erro ao adicionar tarefa.');
+      } finally {
+          setIsSavingTask(false);
+      }
+  };
+
+  const handleDeleteTask = async (taskId) => {
+      try {
+          await leadService.deleteTask(currentLeadForTasks.id, taskId);
+          setTasksList(tasksList.filter(t => t.id !== taskId));
+          toast.success('Tarefa removida.');
+      } catch (error) {
+          toast.error('Erro ao remover tarefa.');
+      }
+  };
 
   const handleOpenNotes = async (lead) => {
     setCurrentLeadForNotes(lead);
@@ -819,6 +888,7 @@ const Leads = () => {
                 {/* <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Valor</th> */}
                 <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
                 <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center">Anotações</th>
+                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center">Tarefas</th>
                 <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Ações</th>
               </tr>
             </thead>
@@ -914,6 +984,15 @@ const Leads = () => {
                                   {lead.notesCount}
                               </span>
                           )}
+                      </button>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <button 
+                          onClick={() => handleOpenTasks(lead)}
+                          className="relative p-2 text-gray-400 hover:text-primary transition-colors group"
+                          title="Ver Tarefas"
+                      >
+                          <CheckSquare className="w-5 h-5" />
                       </button>
                     </td>
                     <td className="px-6 py-4 text-right">
@@ -1568,6 +1647,155 @@ const Leads = () => {
                                         </span>
                                     </div>
                                     <p className="text-sm text-gray-600 whitespace-pre-wrap">{note.content}</p>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+      {/* Tasks Modal */}
+      {isTasksModalOpen && createPortal(
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] flex flex-col">
+            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50 rounded-t-xl">
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">Tarefas</h3>
+                <p className="text-xs text-gray-500">{currentLeadForTasks?.name}</p>
+              </div>
+              <button onClick={() => setIsTasksModalOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                {/* Add Task Form */}
+                <form onSubmit={handleSaveTask} className="space-y-3 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Título *</label>
+                        <input 
+                            type="text"
+                            value={newTaskData.title}
+                            onChange={(e) => setNewTaskData({...newTaskData, title: e.target.value})}
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary outline-none text-sm"
+                            placeholder="Título da tarefa"
+                            required
+                        />
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">Data e Hora *</label>
+                            <input 
+                                type="datetime-local"
+                                value={newTaskData.dueDate}
+                                onChange={(e) => setNewTaskData({...newTaskData, dueDate: e.target.value})}
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary outline-none text-sm"
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">Duração</label>
+                            <input 
+                                type="text"
+                                value={newTaskData.duration}
+                                onChange={(e) => setNewTaskData({...newTaskData, duration: e.target.value})}
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary outline-none text-sm"
+                                placeholder="Ex: 30 min"
+                            />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Descrição</label>
+                        <textarea 
+                            value={newTaskData.description}
+                            onChange={(e) => setNewTaskData({...newTaskData, description: e.target.value})}
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary outline-none resize-none h-20 text-sm"
+                            placeholder="Descrição da tarefa..."
+                        />
+                    </div>
+
+                    <div className="flex justify-end pt-2">
+                        <button 
+                            type="submit" 
+                            disabled={isSavingTask}
+                            className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark font-medium disabled:opacity-50 flex items-center gap-2 text-sm"
+                        >
+                            {isSavingTask ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    Salvando...
+                                </>
+                            ) : (
+                                <>
+                                    <Plus className="w-4 h-4" />
+                                    Adicionar Tarefa
+                                </>
+                            )}
+                        </button>
+                    </div>
+                </form>
+
+                <div className="border-t border-gray-100 pt-4">
+                    <h4 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <CheckSquare className="w-4 h-4" />
+                        Lista de Tarefas
+                    </h4>
+                    
+                    {isLoadingTasks ? (
+                        <div className="flex justify-center py-8">
+                            <img src="/loader-logo.gif" alt="Carregando..." className="h-40 w-auto" />
+                        </div>
+                    ) : tasksList.length === 0 ? (
+                        <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg border border-gray-100 border-dashed">
+                            <CheckSquare className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+                            <p>Nenhuma tarefa agendada.</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-3">
+                            {tasksList.map((task) => (
+                                <div key={task.id} className="bg-white rounded-lg p-3 border border-gray-200 shadow-sm hover:border-primary/30 transition-colors">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <h5 className={`font-semibold text-sm ${task.done ? 'text-gray-500 line-through' : 'text-gray-900'}`}>
+                                            {task.title}
+                                            {task.done && <span className="text-xs text-green-600 font-bold ml-2 no-underline inline-block">(Concluída)</span>}
+                                        </h5>
+                                        <button 
+                                            onClick={() => handleDeleteTask(task.id)}
+                                            className="text-gray-400 hover:text-red-500 transition-colors"
+                                            title="Remover tarefa"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                    
+                                    <div className="flex flex-wrap gap-2 mb-2 text-xs text-gray-500">
+                                        <span className="flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-1 rounded">
+                                            <Calendar className="w-3 h-3" />
+                                            {format(new Date(task.dueDate), "dd/MM/yyyy HH:mm")}
+                                        </span>
+                                        {task.duration && (
+                                            <span className="flex items-center gap-1 bg-gray-100 text-gray-700 px-2 py-1 rounded">
+                                                <Clock className="w-3 h-3" />
+                                                {task.duration}
+                                            </span>
+                                        )}
+                                    </div>
+                                    
+                                    {task.description && (
+                                        <p className="text-sm text-gray-600 whitespace-pre-wrap bg-gray-50 p-2 rounded mt-2 border border-gray-100">
+                                            {task.description}
+                                        </p>
+                                    )}
+
+                                    <div className="mt-2 flex items-center justify-between text-xs text-gray-400 border-t border-gray-100 pt-2">
+                                        <span>Criado por: {task.creator?.name || 'Sistema'}</span>
+                                        <span>Em: {format(new Date(task.createdAt), "dd/MM/yyyy")}</span>
+                                    </div>
                                 </div>
                             ))}
                         </div>

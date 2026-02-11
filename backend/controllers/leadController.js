@@ -1,5 +1,6 @@
 const Lead = require('../models/Lead');
 const LeadNote = require('../models/LeadNote');
+const LeadTask = require('../models/LeadTask');
 const Partner = require('../models/Partner');
 const User = require('../models/User');
 const whatsappService = require('../services/whatsappService');
@@ -190,6 +191,15 @@ exports.list = async (req, res) => {
                 note.leadId = Lead.id
             )`),
             'notesCount'
+          ],
+          [
+            sequelize.literal(`(
+              SELECT COUNT(*)
+              FROM LeadTasks AS task
+              WHERE
+                task.leadId = Lead.id
+            )`),
+            'tasksCount'
           ]
         ]
       },
@@ -412,5 +422,109 @@ exports.delete = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Erro ao deletar lead.' });
+  }
+};
+
+exports.addTask = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, description, dueDate, duration } = req.body;
+    const userId = req.user.id;
+
+    const lead = await Lead.findByPk(id);
+    if (!lead) return res.status(404).json({ message: 'Lead não encontrado.' });
+
+    // Permissions check
+    if (req.user.role === 'partner') {
+      const partner = await Partner.findOne({ where: { userId } });
+      if (lead.partnerId !== partner.id) {
+        return res.status(403).json({ message: 'Acesso negado.' });
+      }
+    } else if (req.user.role === 'consultor') {
+      const partner = await Partner.findByPk(lead.partnerId);
+      if (!partner || partner.consultantId !== req.user.id) {
+        return res.status(403).json({ message: 'Acesso negado.' });
+      }
+    }
+
+    const task = await LeadTask.create({
+      leadId: id,
+      userId,
+      title,
+      description,
+      dueDate,
+      duration
+    });
+
+    const taskWithCreator = await LeadTask.findByPk(task.id, {
+      include: [{ model: User, as: 'creator', attributes: ['name', 'role'] }]
+    });
+
+    res.status(201).json(taskWithCreator);
+  } catch (error) {
+    console.error('Erro ao adicionar tarefa:', error);
+    res.status(500).json({ message: 'Erro ao adicionar tarefa.' });
+  }
+};
+
+exports.getTasks = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const lead = await Lead.findByPk(id);
+    if (!lead) return res.status(404).json({ message: 'Lead não encontrado.' });
+
+    if (req.user.role === 'partner') {
+      const partner = await Partner.findOne({ where: { userId: req.user.id } });
+      if (lead.partnerId !== partner.id) {
+        return res.status(403).json({ message: 'Acesso negado.' });
+      }
+    } else if (req.user.role === 'consultor') {
+      const partner = await Partner.findByPk(lead.partnerId);
+      if (!partner || partner.consultantId !== req.user.id) {
+        return res.status(403).json({ message: 'Acesso negado.' });
+      }
+    }
+
+    const tasks = await LeadTask.findAll({
+      where: { leadId: id },
+      include: [{ model: User, as: 'creator', attributes: ['name', 'role'] }],
+      order: [['dueDate', 'ASC']] // Tasks usually ordered by due date
+    });
+
+    res.json(tasks);
+  } catch (error) {
+    console.error('Erro ao listar tarefas:', error);
+    res.status(500).json({ message: 'Erro ao listar tarefas.' });
+  }
+};
+
+exports.deleteTask = async (req, res) => {
+  try {
+    const { taskId } = req.params;
+    const task = await LeadTask.findByPk(taskId);
+    if (!task) return res.status(404).json({ message: 'Tarefa não encontrada.' });
+
+    // Check permissions (same as other lead operations, or strictly owner/admin?)
+    // For simplicity, using same lead access logic
+    const lead = await Lead.findByPk(task.leadId);
+    
+    if (req.user.role === 'partner') {
+        const partner = await Partner.findOne({ where: { userId: req.user.id } });
+        if (lead.partnerId !== partner.id) {
+          return res.status(403).json({ message: 'Acesso negado.' });
+        }
+    } else if (req.user.role === 'consultor') {
+        const partner = await Partner.findByPk(lead.partnerId);
+        if (!partner || partner.consultantId !== req.user.id) {
+          return res.status(403).json({ message: 'Acesso negado.' });
+        }
+    }
+
+    await task.destroy();
+    res.status(204).send();
+  } catch (error) {
+    console.error('Erro ao deletar tarefa:', error);
+    res.status(500).json({ message: 'Erro ao deletar tarefa.' });
   }
 };

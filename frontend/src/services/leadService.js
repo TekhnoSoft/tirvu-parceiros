@@ -37,6 +37,20 @@ const leadService = {
   addNote: async (id, content) => {
     const response = await api.post(`/leads/${id}/notes`, { content });
     return response.data;
+  },
+
+  getTasks: async (id) => {
+    const response = await api.get(`/leads/${id}/tasks`);
+    return response.data;
+  },
+
+  addTask: async (id, taskData) => {
+    const response = await api.post(`/leads/${id}/tasks`, taskData);
+    return response.data;
+  },
+
+  deleteTask: async (id, taskId) => {
+    await api.delete(`/leads/${id}/tasks/${taskId}`);
   }
 };
 

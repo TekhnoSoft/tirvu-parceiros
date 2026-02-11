@@ -18,4 +18,9 @@ router.delete('/:id', authorize(['admin', 'partner', 'consultor']), leadControll
 router.get('/:id/notes', authorize(['admin', 'partner', 'consultor']), leadController.getNotes);
 router.post('/:id/notes', authorize(['admin', 'partner', 'consultor']), leadController.addNote);
 
+// Tasks routes
+router.get('/:id/tasks', authorize(['admin', 'partner', 'consultor']), leadController.getTasks);
+router.post('/:id/tasks', authorize(['admin', 'partner', 'consultor']), leadController.addTask);
+router.delete('/tasks/:taskId', authorize(['admin', 'partner', 'consultor']), leadController.deleteTask);
+
 module.exports = router;
