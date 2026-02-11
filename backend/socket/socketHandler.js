@@ -81,6 +81,30 @@ const initSocket = (server) => {
       }
     });
 
+    // Handle marking messages as read
+    socket.on('mark_messages_read', async ({ senderId }) => {
+      try {
+        // senderId is the person whose messages I am reading (they sent them to me)
+        // receiverId is ME (userId)
+        
+        await Message.update({ read: true }, {
+          where: {
+            senderId: senderId,
+            receiverId: userId,
+            read: false
+          }
+        });
+
+        // Notify the SENDER that their messages were read by ME
+        io.to(`user_${senderId}`).emit('messages_read_confirm', {
+          readerId: userId // ID of the person who read the messages (me)
+        });
+
+      } catch (error) {
+        console.error('Error marking messages as read:', error);
+      }
+    });
+
     socket.on('disconnect', () => {
       console.log(`User disconnected: ${userId}`);
       if (onlineUsers.has(userId)) {

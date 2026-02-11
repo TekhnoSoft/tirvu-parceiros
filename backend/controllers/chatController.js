@@ -79,14 +79,16 @@ exports.getContacts = async (req, res) => {
                 ]
             },
             order: [['createdAt', 'DESC']],
-            attributes: ['createdAt', 'content']
+            attributes: ['createdAt', 'content', 'read', 'senderId']
         });
 
         return {
             ...contact.toJSON(),
             unreadCount,
             lastMessage: lastMessage ? lastMessage.content : null,
-            lastMessageAt: lastMessage ? lastMessage.createdAt : null
+            lastMessageAt: lastMessage ? lastMessage.createdAt : null,
+            lastMessageRead: lastMessage ? lastMessage.read : null,
+            lastMessageSenderId: lastMessage ? lastMessage.senderId : null
         };
     }));
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import chatService from '../services/chatService';
 import { io } from 'socket.io-client';
-import { Send, User, MessageSquare, Search } from 'lucide-react';
+import { Send, User, MessageSquare, Search, Check, CheckCheck } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -96,15 +96,31 @@ const Chat = () => {
     });
 
     socket.on('receive_message', (message) => {
-      // Move contact to top
+      // Move contact to top and update last message
       setContacts(prev => {
         const otherId = message.senderId === user.id ? message.receiverId : message.senderId;
         const index = prev.findIndex(c => c.id === otherId);
-        if (index <= 0) return prev;
         
-        const newContacts = [...prev];
-        const [moved] = newContacts.splice(index, 1);
-        newContacts.unshift(moved);
+        let newContacts = [...prev];
+        let movedContact;
+
+        if (index >= 0) {
+            [movedContact] = newContacts.splice(index, 1);
+        } else {
+            // New contact logic could be added here if needed, but for now assuming existing contact
+            return prev;
+        }
+
+        // Update last message info
+        movedContact = {
+            ...movedContact,
+            lastMessage: message.content,
+            lastMessageAt: message.createdAt,
+            lastMessageRead: message.read,
+            lastMessageSenderId: message.senderId
+        };
+
+        newContacts.unshift(movedContact);
         return newContacts;
       });
 
@@ -112,6 +128,12 @@ const Chat = () => {
       if (activeContact && (message.senderId === activeContact.id || message.receiverId === activeContact.id)) {
         setMessages((prev) => [...prev, message]);
         scrollToBottom();
+        
+        // If I am the receiver and the chat is open, mark as read immediately
+        if (message.receiverId === user.id) {
+             socket.emit('mark_messages_read', { senderId: message.senderId });
+        }
+
       } else {
         // If message is from someone else and I'm not the sender, add notification
         if (message.senderId !== user.id) {
@@ -123,21 +145,48 @@ const Chat = () => {
       }
     });
 
-    return () => socket.off('receive_message');
+    // Listen for read confirmation
+    socket.on('messages_read_confirm', ({ readerId }) => {
+        // If the person I'm chatting with (activeContact) read my messages
+        if (activeContact && readerId === activeContact.id) {
+            setMessages(prev => prev.map(msg => 
+                msg.senderId === user.id ? { ...msg, read: true } : msg
+            ));
+        }
+
+        // Update contacts list last message read status
+        setContacts(prev => prev.map(c => {
+            if (c.id === readerId && c.lastMessageSenderId === user.id) {
+                return { ...c, lastMessageRead: true };
+            }
+            return c;
+        }));
+    });
+
+    return () => {
+        socket.off('receive_message');
+        socket.off('messages_read_confirm');
+    };
   }, [socket, activeContact, user.id]);
 
   // Load messages when active contact changes
   useEffect(() => {
     if (activeContact) {
       loadMessages(activeContact.id);
+      
       // Clear unread count when opening chat
       setUnreadCounts(prev => {
         const newCounts = { ...prev };
         delete newCounts[activeContact.id];
         return newCounts;
       });
+
+      // Mark messages as read
+      if (socket) {
+        socket.emit('mark_messages_read', { senderId: activeContact.id });
+      }
     }
-  }, [activeContact]);
+  }, [activeContact, socket]);
 
   const loadMessages = async (contactId) => {
     try {
@@ -172,6 +221,7 @@ const Chat = () => {
       receiverId: activeContact.id,
       content: newMessage,
       createdAt: new Date().toISOString(),
+      read: false,
       Sender: { id: user.id, name: user.name }
     };
 
@@ -179,13 +229,29 @@ const Chat = () => {
     setNewMessage('');
     scrollToBottom();
 
-    // Move active contact to top
+    // Move active contact to top and update last message
     setContacts(prev => {
       const index = prev.findIndex(c => c.id === activeContact.id);
-      if (index <= 0) return prev;
-      const newContacts = [...prev];
-      const [moved] = newContacts.splice(index, 1);
-      newContacts.unshift(moved);
+      
+      let newContacts = [...prev];
+      let movedContact;
+
+      if (index >= 0) {
+          [movedContact] = newContacts.splice(index, 1);
+      } else {
+          return prev;
+      }
+
+      // Update last message info
+      movedContact = {
+          ...movedContact,
+          lastMessage: tempMsg.content,
+          lastMessageAt: tempMsg.createdAt,
+          lastMessageRead: false,
+          lastMessageSenderId: user.id
+      };
+
+      newContacts.unshift(movedContact);
       return newContacts;
     });
   };
@@ -259,11 +325,30 @@ const Chat = () => {
                 <div className="overflow-hidden flex flex-col items-start gap-1 flex-1">
                   <div className="flex justify-between items-center w-full">
                     <p className="font-medium text-gray-900 truncate">{contact.name}</p>
+                    <span className="text-xs text-gray-500">
+                        {contact.lastMessageAt ? format(new Date(contact.lastMessageAt), "HH:mm") : ''}
+                    </span>
+                  </div>
+                  
+                  <div className="flex justify-between items-center w-full">
+                    <p className="text-sm text-gray-500 truncate max-w-[180px] flex items-center gap-1">
+                        {contact.lastMessageSenderId === user.id && (
+                            contact.lastMessageRead ? (
+                                <CheckCheck className="w-3 h-3 text-blue-500 shrink-0" />
+                            ) : (
+                                <CheckCheck className="w-3 h-3 text-gray-400 shrink-0" />
+                            )
+                        )}
+                        {contact.lastMessage || ''}
+                    </p>
                     {unreadCounts[contact.id] > 0 && (
-                       <span className="text-[10px] text-green-600 font-medium">Nova msg</span>
+                       <span className="bg-primary text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold">
+                           {unreadCounts[contact.id]}
+                       </span>
                     )}
                   </div>
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${getRoleStyle(contact.role)}`}>
+
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium mt-1 ${getRoleStyle(contact.role)}`}>
                     {getRoleLabel(contact.role)}
                   </span>
                 </div>
@@ -314,13 +399,20 @@ const Chat = () => {
                     <div
                       className={`max-w-[70%] rounded-2xl px-4 py-2 shadow-sm ${
                         isMe
-                          ? 'bg-primary text-white rounded-tr-none'
+                          ? 'bg-blue-50 text-gray-800 border border-blue-100 rounded-tr-none'
                           : 'bg-white text-gray-800 border border-gray-200 rounded-tl-none'
                       }`}
                     >
                       <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
-                      <p className={`text-[10px] mt-1 text-right ${isMe ? 'text-blue-100' : 'text-gray-400'}`}>
+                      <p className={`text-[10px] mt-1 flex items-center justify-end gap-1 ${isMe ? 'text-blue-400' : 'text-gray-400'}`}>
                         {msg.createdAt ? format(new Date(msg.createdAt), "HH:mm") : '...'}
+                        {isMe && (
+                            msg.read ? (
+                                <CheckCheck className="w-3 h-3 text-blue-500" />
+                            ) : (
+                                <CheckCheck className="w-3 h-3 text-gray-400" />
+                            )
+                        )}
                       </p>
                     </div>
                   </div>
