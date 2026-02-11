@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const { Message, User } = require('../models');
 
 let io;
+const onlineUsers = new Map(); // userId -> Set of socketIds
 
 const initSocket = (server) => {
   io = socketIo(server, {
@@ -27,10 +28,26 @@ const initSocket = (server) => {
   });
 
   io.on('connection', (socket) => {
-    console.log(`User connected: ${socket.user.id} (${socket.user.name})`);
+    const userId = socket.user.id;
+    console.log(`User connected: ${userId} (${socket.user.name})`);
     
     // Join a room specifically for this user
-    socket.join(`user_${socket.user.id}`);
+    socket.join(`user_${userId}`);
+
+    // Track online status
+    if (!onlineUsers.has(userId)) {
+      onlineUsers.set(userId, new Set());
+    }
+    onlineUsers.get(userId).add(socket.id);
+
+    // Broadcast if this is the first session for this user
+    if (onlineUsers.get(userId).size === 1) {
+      socket.broadcast.emit('user_status_change', { userId, status: 'online' });
+    }
+
+    // Send current online users to the newly connected user
+    const onlineUserIds = Array.from(onlineUsers.keys());
+    socket.emit('online_users_list', onlineUserIds);
 
     // Handle sending messages
     socket.on('send_message', async (data) => {
@@ -39,7 +56,7 @@ const initSocket = (server) => {
         
         // Save to Database
         const message = await Message.create({
-          senderId: socket.user.id,
+          senderId: userId,
           receiverId,
           content,
           read: false
@@ -65,7 +82,15 @@ const initSocket = (server) => {
     });
 
     socket.on('disconnect', () => {
-      console.log('User disconnected');
+      console.log(`User disconnected: ${userId}`);
+      if (onlineUsers.has(userId)) {
+        onlineUsers.get(userId).delete(socket.id);
+        
+        if (onlineUsers.get(userId).size === 0) {
+          onlineUsers.delete(userId);
+          io.emit('user_status_change', { userId, status: 'offline' });
+        }
+      }
     });
   });
 

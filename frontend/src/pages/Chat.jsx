@@ -13,6 +13,8 @@ const Chat = () => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [unreadCounts, setUnreadCounts] = useState({});
+  const [onlineUsers, setOnlineUsers] = useState(new Set());
   const [socket, setSocket] = useState(null);
   const messagesEndRef = useRef(null);
 
@@ -42,27 +44,68 @@ const Chat = () => {
     }
   };
 
-  // Listen for incoming messages
+  // Listen for incoming messages and status
   useEffect(() => {
     if (!socket) return;
 
+    // Online Users
+    socket.on('online_users_list', (userIds) => {
+      setOnlineUsers(new Set(userIds));
+    });
+
+    socket.on('user_status_change', ({ userId, status }) => {
+      setOnlineUsers(prev => {
+        const newSet = new Set(prev);
+        if (status === 'online') {
+          newSet.add(userId);
+        } else {
+          newSet.delete(userId);
+        }
+        return newSet;
+      });
+    });
+
     socket.on('receive_message', (message) => {
-      // Only append if we are chatting with the sender or if it's from me (shouldn't happen via this event usually but good safety)
-      // OR if we want to show unread badges later, we'd handle that here.
-      
+      // Move contact to top
+      setContacts(prev => {
+        const otherId = message.senderId === user.id ? message.receiverId : message.senderId;
+        const index = prev.findIndex(c => c.id === otherId);
+        if (index <= 0) return prev;
+        
+        const newContacts = [...prev];
+        const [moved] = newContacts.splice(index, 1);
+        newContacts.unshift(moved);
+        return newContacts;
+      });
+
+      // Only append if we are chatting with the sender or if it's from me
       if (activeContact && (message.senderId === activeContact.id || message.receiverId === activeContact.id)) {
         setMessages((prev) => [...prev, message]);
         scrollToBottom();
+      } else {
+        // If message is from someone else and I'm not the sender, add notification
+        if (message.senderId !== user.id) {
+          setUnreadCounts(prev => ({
+            ...prev,
+            [message.senderId]: (prev[message.senderId] || 0) + 1
+          }));
+        }
       }
     });
 
     return () => socket.off('receive_message');
-  }, [socket, activeContact]);
+  }, [socket, activeContact, user.id]);
 
   // Load messages when active contact changes
   useEffect(() => {
     if (activeContact) {
       loadMessages(activeContact.id);
+      // Clear unread count when opening chat
+      setUnreadCounts(prev => {
+        const newCounts = { ...prev };
+        delete newCounts[activeContact.id];
+        return newCounts;
+      });
     }
   }, [activeContact]);
 
@@ -105,6 +148,16 @@ const Chat = () => {
     setMessages((prev) => [...prev, tempMsg]);
     setNewMessage('');
     scrollToBottom();
+
+    // Move active contact to top
+    setContacts(prev => {
+      const index = prev.findIndex(c => c.id === activeContact.id);
+      if (index <= 0) return prev;
+      const newContacts = [...prev];
+      const [moved] = newContacts.splice(index, 1);
+      newContacts.unshift(moved);
+      return newContacts;
+    });
   };
 
   // Helper functions for roles
@@ -164,11 +217,22 @@ const Chat = () => {
                   activeContact?.id === contact.id ? 'bg-blue-50 border-l-4 border-l-primary' : ''
                 }`}
               >
-                <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-bold shrink-0">
+                <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-bold shrink-0 relative">
                   {contact.name.charAt(0).toUpperCase()}
+                  {unreadCounts[contact.id] > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-white">
+                      {unreadCounts[contact.id]}
+                    </span>
+                  )}
+                  <span className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${onlineUsers.has(contact.id) ? 'bg-green-500' : 'bg-gray-400'}`}></span>
                 </div>
-                <div className="overflow-hidden flex flex-col items-start gap-1">
-                  <p className="font-medium text-gray-900 truncate">{contact.name}</p>
+                <div className="overflow-hidden flex flex-col items-start gap-1 flex-1">
+                  <div className="flex justify-between items-center w-full">
+                    <p className="font-medium text-gray-900 truncate">{contact.name}</p>
+                    {unreadCounts[contact.id] > 0 && (
+                       <span className="text-[10px] text-green-600 font-medium">Nova msg</span>
+                    )}
+                  </div>
                   <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${getRoleStyle(contact.role)}`}>
                     {getRoleLabel(contact.role)}
                   </span>
@@ -191,8 +255,9 @@ const Chat = () => {
               >
                 Voltar
               </button>
-              <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold">
+              <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold relative">
                 {activeContact.name.charAt(0).toUpperCase()}
+                <span className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${onlineUsers.has(activeContact.id) ? 'bg-green-500' : 'bg-gray-400'}`}></span>
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900">{activeContact.name}</h3>
