@@ -105,6 +105,15 @@ const initSocket = (server) => {
       }
     });
 
+    // Handle typing status
+    socket.on('typing', ({ receiverId }) => {
+      io.to(`user_${receiverId}`).emit('user_typing', { senderId: userId });
+    });
+
+    socket.on('stop_typing', ({ receiverId }) => {
+      io.to(`user_${receiverId}`).emit('user_stop_typing', { senderId: userId });
+    });
+
     socket.on('disconnect', () => {
       console.log(`User disconnected: ${userId}`);
       if (onlineUsers.has(userId)) {

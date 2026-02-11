@@ -15,6 +15,8 @@ const Chat = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [unreadCounts, setUnreadCounts] = useState({});
   const [onlineUsers, setOnlineUsers] = useState(new Set());
+  const [typingUsers, setTypingUsers] = useState(new Set()); // userId -> boolean
+  const typingTimeoutRef = useRef(null);
   const [socket, setSocket] = useState(null);
   const messagesEndRef = useRef(null);
   const [loading, setLoading] = useState(true);
@@ -163,9 +165,24 @@ const Chat = () => {
         }));
     });
 
+    // Listen for typing status
+    socket.on('user_typing', ({ senderId }) => {
+      setTypingUsers(prev => new Set(prev).add(senderId));
+    });
+
+    socket.on('user_stop_typing', ({ senderId }) => {
+      setTypingUsers(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(senderId);
+        return newSet;
+      });
+    });
+
     return () => {
         socket.off('receive_message');
         socket.off('messages_read_confirm');
+        socket.off('user_typing');
+        socket.off('user_stop_typing');
     };
   }, [socket, activeContact, user.id]);
 
@@ -204,9 +221,29 @@ const Chat = () => {
     }, 100);
   };
 
+  const handleInputChange = (e) => {
+    setNewMessage(e.target.value);
+    
+    if (!activeContact || !socket) return;
+
+    socket.emit('typing', { receiverId: activeContact.id });
+
+    // Clear existing timeout
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+
+    // Set new timeout to stop typing
+    typingTimeoutRef.current = setTimeout(() => {
+      socket.emit('stop_typing', { receiverId: activeContact.id });
+    }, 2000);
+  };
+
   const handleSendMessage = (e) => {
     e.preventDefault();
     if (!newMessage.trim() || !activeContact || !socket) return;
+
+    // Clear typing status immediately
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    socket.emit('stop_typing', { receiverId: activeContact.id });
 
     // Emit to socket
     socket.emit('send_message', {
@@ -331,16 +368,22 @@ const Chat = () => {
                   </div>
                   
                   <div className="flex justify-between items-center w-full">
-                    <p className="text-sm text-gray-500 truncate max-w-[180px] flex items-center gap-1">
-                        {contact.lastMessageSenderId === user.id && (
-                            contact.lastMessageRead ? (
-                                <CheckCheck className="w-3 h-3 text-blue-500 shrink-0" />
-                            ) : (
-                                <CheckCheck className="w-3 h-3 text-gray-400 shrink-0" />
-                            )
-                        )}
-                        {contact.lastMessage || ''}
-                    </p>
+                    <div className="text-sm text-gray-500 truncate max-w-[180px] flex items-center gap-1">
+                      {typingUsers.has(contact.id) ? (
+                        <span className="text-primary text-xs italic font-medium animate-pulse">Digitando...</span>
+                      ) : (
+                        <>
+                          {contact.lastMessageSenderId === user.id && (
+                              contact.lastMessageRead ? (
+                                  <CheckCheck className="w-3 h-3 text-blue-500 shrink-0" />
+                              ) : (
+                                  <CheckCheck className="w-3 h-3 text-gray-400 shrink-0" />
+                              )
+                          )}
+                          {contact.lastMessage || ''}
+                        </>
+                      )}
+                    </div>
                     {unreadCounts[contact.id] > 0 && (
                        <span className="bg-primary text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold">
                            {unreadCounts[contact.id]}
@@ -374,11 +417,17 @@ const Chat = () => {
                 {activeContact.name.charAt(0).toUpperCase()}
                 <span className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${onlineUsers.has(activeContact.id) ? 'bg-green-500' : 'bg-gray-400'}`}></span>
               </div>
-              <div>
+              <div className="flex flex-col">
                 <h3 className="font-semibold text-gray-900">{activeContact.name}</h3>
-                <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${getRoleStyle(activeContact.role)}`}>
-                  {getRoleLabel(activeContact.role)}
-                </span>
+                {typingUsers.has(activeContact.id) ? (
+                    <span className="text-primary text-xs italic font-medium animate-pulse">
+                        Digitando...
+                    </span>
+                ) : (
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium w-fit ${getRoleStyle(activeContact.role)}`}>
+                      {getRoleLabel(activeContact.role)}
+                    </span>
+                )}
               </div>
             </div>
 
@@ -427,7 +476,7 @@ const Chat = () => {
                 <input
                   type="text"
                   value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
+                  onChange={handleInputChange}
                   placeholder="Digite sua mensagem..."
                   className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                 />
