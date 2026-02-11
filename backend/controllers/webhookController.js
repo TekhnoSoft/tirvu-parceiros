@@ -1,4 +1,5 @@
-const { Lead } = require('../models');
+const { Lead, LeadNote } = require('../models');
+const { Op } = require('sequelize');
 
 const STAGE_MAP = {
   32: 'nova_indicacao',
@@ -54,6 +55,44 @@ const handlePipedriveWebhook = async (req, res) => {
         } catch (error) {
             console.error('Error updating lead refId:', error);
             return res.status(500).json({ message: 'Error updating lead' });
+        }
+    }
+
+    // Handle Note Created Event
+    if (payload.meta && payload.meta.entity === 'note' && payload.meta.action === 'create' && payload.data) {
+        const { deal_id, content } = payload.data;
+        
+        console.log(`Processing Note Created: Deal ID ${deal_id}, Content: ${content}`);
+        
+        if (deal_id && content) {
+            try {
+                // Find Lead by refId (deal_id)
+                // Also check pipedriveId for backward compatibility or if refId isn't set yet
+                const lead = await Lead.findOne({ 
+                    where: { 
+                        [Op.or]: [
+                            { refId: String(deal_id) },
+                            { pipedriveId: String(deal_id) }
+                        ]
+                    } 
+                });
+
+                if (lead) {
+                    await LeadNote.create({
+                        leadId: lead.id,
+                        content: content,
+                        userId: null // Webhook notes don't have a direct internal user mapping easily available
+                    });
+                    console.log(`Note added to Lead ${lead.id}`);
+                    return res.status(200).json({ message: 'Note added successfully' });
+                } else {
+                    console.log(`Lead not found for Note (Deal ID: ${deal_id})`);
+                    return res.status(404).json({ message: 'Lead not found for note' });
+                }
+            } catch (error) {
+                console.error('Error adding note to lead:', error);
+                return res.status(500).json({ message: 'Error processing note' });
+            }
         }
     }
 
