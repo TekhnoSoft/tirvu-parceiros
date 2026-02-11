@@ -37,12 +37,22 @@ const Lead = sequelize.define('Lead', {
     type: DataTypes.STRING,
     allowNull: true // CPF or CNPJ
   },
+  pipedriveId: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
   observation: {
     type: DataTypes.TEXT,
     allowNull: true
   },
   status: {
-    type: DataTypes.ENUM('new', 'contact', 'negotiation', 'converted', 'lost'),
+    type: DataTypes.ENUM(
+      'new', 'contact', 'negotiation', 'converted', 'lost',
+      'nova_indicacao', 'prospeccao', 'em_desenvolvimento',
+      'agendado_apresentacao',
+      'no_show_treinamento', 'em_apresentacao', 'follow_up', 'aguardando_treinamento',
+      'teste_gratis', 'vendidos', 'perdidos'
+    ),
     defaultValue: 'new'
   },
   value: {

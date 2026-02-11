@@ -39,10 +39,10 @@ function App() {
           <Route element={<ProtectedRoute allowedRoles={['admin', 'consultor']} />}>
             <Route path="/admin" element={<DashboardLayout />}>
               <Route index element={<AdminDashboard />} />
-              <Route path="partners" element={<AdminPartners />} />
               {/* Only Admin can access users management */}
               <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
                 <Route path="users" element={<AdminUsers />} />
+                <Route path="partners" element={<AdminPartners />} />
               </Route>
               <Route path="leads" element={<Leads />} />
               <Route path="transactions" element={<Finance />} />

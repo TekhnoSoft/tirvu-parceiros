@@ -16,8 +16,10 @@ const Sidebar = ({ role }) => {
 
   const adminLinks = [
     { to: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
-    ...(role === 'admin' ? [{ to: '/admin/users', icon: Shield, label: 'Usuários' }] : []),
-    { to: '/admin/partners', icon: Users, label: 'Parceiros' },
+    ...(role === 'admin' ? [
+      { to: '/admin/users', icon: Shield, label: 'Usuários' },
+      { to: '/admin/partners', icon: Users, label: 'Parceiros' }
+    ] : []),
     { to: '/admin/leads', icon: FileText, label: 'Leads' },
     { to: '/admin/transactions', icon: Wallet, label: 'Movimentações' },
     { to: '/admin/materials', icon: FileText, label: 'Materiais' },

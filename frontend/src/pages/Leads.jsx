@@ -18,6 +18,7 @@ import {
 } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { maskCPF, maskCNPJ, maskPhone, maskCurrency } from '../utils/masks';
+import { STATUS_LABELS } from '../constants/leadStatus';
 
 const Leads = () => {
   const { user } = useAuth();
@@ -256,9 +257,9 @@ const Leads = () => {
     numberOfEmployees: ''
   });
 
-  const fetchLeads = async () => {
+  const fetchLeads = async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const filters = {
         startDate,
         endDate,
@@ -270,9 +271,21 @@ const Leads = () => {
       toast.error('Erro ao carregar leads.');
       console.error(error);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
+
+  // Auto Refresh State and Effect
+  const [autoRefreshInterval, setAutoRefreshInterval] = useState(0);
+
+  useEffect(() => {
+    if (autoRefreshInterval > 0) {
+      const interval = setInterval(() => {
+        fetchLeads(true);
+      }, autoRefreshInterval);
+      return () => clearInterval(interval);
+    }
+  }, [autoRefreshInterval, startDate, endDate, selectedPartner]);
 
   const handleOpenModal = (lead = null) => {
     if (lead) {
@@ -528,13 +541,29 @@ const Leads = () => {
           <h1 className="text-2xl font-bold text-gray-900">Gestão de Leads</h1>
           <p className="text-gray-500">Gerencie seus potenciais clientes e oportunidades.</p>
         </div>
-        <button
-          onClick={() => handleOpenModal()}
-          className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          Novo Lead
-        </button>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 bg-white border border-gray-300 rounded-lg px-3 py-2 shadow-sm">
+            <span className="text-sm text-gray-500 whitespace-nowrap">Atualizar:</span>
+            <select 
+              className="text-sm border-none focus:ring-0 text-gray-700 bg-transparent p-0 cursor-pointer outline-none font-medium"
+              value={autoRefreshInterval}
+              onChange={(e) => setAutoRefreshInterval(Number(e.target.value))}
+            >
+              <option value={0}>Manual</option>
+              <option value={10000}>10s</option>
+              <option value={30000}>30s</option>
+              <option value={60000}>1m</option>
+              <option value={300000}>5m</option>
+            </select>
+          </div>
+          <button
+            onClick={() => handleOpenModal()}
+            className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Novo Lead
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -559,11 +588,9 @@ const Leads = () => {
                 className="appearance-none bg-gray-50 border border-gray-200 text-gray-700 py-2 pl-4 pr-10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm font-medium cursor-pointer"
               >
                 <option value="all">Todos os Status</option>
-                <option value="new">Novo</option>
-                <option value="contact">Contato</option>
-                <option value="negotiation">Negociação</option>
-                <option value="converted">Convertido</option>
-                <option value="lost">Perdido</option>
+                {Object.entries(STATUS_LABELS).map(([key, label]) => (
+                  <option key={key} value={key}>{label}</option>
+                ))}
               </select>
               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                 <Filter className="h-4 w-4 text-gray-400" />
@@ -791,22 +818,14 @@ const Leads = () => {
                     <td className="px-6 py-4">
                        <div className="flex flex-col gap-1">
                         <span className={`px-2 py-1 rounded-full text-xs font-medium capitalize w-fit
-                            ${lead.status === 'converted' ? 'bg-green-100 text-green-800' : 
-                            lead.status === 'lost' ? 'bg-red-100 text-red-800' : 
+                            ${(lead.status === 'converted' || lead.status === 'vendidos') ? 'bg-green-100 text-green-800' : 
+                            (lead.status === 'lost' || lead.status === 'perdidos') ? 'bg-red-100 text-red-800' : 
                             'bg-yellow-100 text-yellow-800'}`}>
-                            {
-                                {
-                                    'new': 'Novo',
-                                    'contact': 'Contato',
-                                    'negotiation': 'Negociação',
-                                    'converted': 'Convertido',
-                                    'lost': 'Perdido'
-                                }[lead.status] || lead.status
-                            }
+                            {STATUS_LABELS[lead.status] || lead.status}
                         </span>
                         
                         {/* Indicador pulsando para leads em prospecção (não novos e não perdidos) */}
-                        {['contact', 'negotiation'].includes(lead.status) && (
+                        {['contact', 'negotiation', 'prospeccao', 'em_desenvolvimento'].includes(lead.status) && (
                             <div className="flex items-center gap-1.5">
                                 <span className="relative flex h-2 w-2">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
@@ -929,21 +948,13 @@ const Leads = () => {
                 <div className="pt-3 border-t border-gray-100 flex items-center justify-between">
                     <div className="flex flex-col gap-1">
                         <span className={`px-2 py-1 rounded-full text-xs font-medium capitalize w-fit
-                            ${lead.status === 'converted' ? 'bg-green-100 text-green-800' : 
-                            lead.status === 'lost' ? 'bg-red-100 text-red-800' : 
+                            ${(lead.status === 'converted' || lead.status === 'vendidos') ? 'bg-green-100 text-green-800' : 
+                            (lead.status === 'lost' || lead.status === 'perdidos') ? 'bg-red-100 text-red-800' : 
                             'bg-yellow-100 text-yellow-800'}`}>
-                            {
-                                {
-                                    'new': 'Novo',
-                                    'contact': 'Contato',
-                                    'negotiation': 'Negociação',
-                                    'converted': 'Convertido',
-                                    'lost': 'Perdido'
-                                }[lead.status] || lead.status
-                            }
+                            {STATUS_LABELS[lead.status] || lead.status}
                         </span>
                          {/* Status Indicators */}
-                         {['contact', 'negotiation'].includes(lead.status) && (
+                         {['contact', 'negotiation', 'prospeccao', 'em_desenvolvimento'].includes(lead.status) && (
                             <div className="flex items-center gap-1.5">
                                 <span className="relative flex h-2 w-2">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
@@ -1044,11 +1055,9 @@ const Leads = () => {
                     onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                     disabled={user?.role === 'partner'}
                   >
-                    <option value="new">Novo</option>
-                    <option value="contact">Contato</option>
-                    <option value="negotiation">Negociação</option>
-                    <option value="converted">Convertido</option>
-                    <option value="lost">Perdido</option>
+                    {Object.entries(STATUS_LABELS).map(([key, label]) => (
+                      <option key={key} value={key}>{label}</option>
+                    ))}
                   </select>
                 </div>
               </div>
