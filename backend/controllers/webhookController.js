@@ -144,13 +144,17 @@ const handlePipedriveWebhook = async (req, res) => {
         const { deal_id, subject, public_description, note, due_date, due_time, duration, done } = payload.data;
         const activityId = String(payload.meta.entity_id);
 
-        console.log(`Processing Activity: ${subject} (ID: ${activityId}) for Deal ID ${deal_id}`);
+        console.log(`Processing Activity: ${subject} (ID: ${activityId})`);
 
-        if (deal_id) {
-            try {
-                // Find Lead by refId (deal_id)
-                // Also check pipedriveId for backward compatibility
-                const lead = await Lead.findOne({ 
+        try {
+            // Check if task exists first
+            const existingTask = await LeadTask.findOne({ where: { pipedriveId: activityId } });
+            
+            let lead = null;
+            
+            // If we have a deal_id, try to find the lead
+            if (deal_id) {
+                lead = await Lead.findOne({ 
                     where: { 
                         [Op.or]: [
                             { refId: String(deal_id) },
@@ -158,55 +162,52 @@ const handlePipedriveWebhook = async (req, res) => {
                         ]
                     } 
                 });
-
-                if (lead) {
-                    // Calculate Due Date (UTC-3)
-                    let dueDate = null;
-                    if (due_date) {
-                        const timePart = (due_time && due_time.value) ? due_time.value : '00:00:00';
-                        // Construct ISO string with -03:00 offset to ensure correct local time interpretation
-                        // Format: YYYY-MM-DDTHH:mm:ss-03:00
-                        // Example: 2026-02-12T20:00:00-03:00
-                        dueDate = new Date(`${due_date}T${timePart}-03:00`);
-                    }
-
-                    // Prepare task data
-                    const taskData = {
-                        leadId: lead.id,
-                        title: subject,
-                        description: public_description || note || '',
-                        duration: (duration && duration.value) ? duration.value : null,
-                        done: !!done,
-                        pipedriveId: activityId,
-                        userId: null
-                    };
-
-                    if (dueDate) {
-                        taskData.dueDate = dueDate;
-                    }
-
-                    // Upsert Task (Create or Update)
-                    const existingTask = await LeadTask.findOne({ where: { pipedriveId: activityId } });
-                    
-                    if (existingTask) {
-                        await existingTask.update(taskData);
-                        console.log(`Task ${existingTask.id} updated from Pipedrive Activity ${activityId}`);
-                    } else {
-                        const newTask = await LeadTask.create(taskData);
-                        console.log(`Task ${newTask.id} created from Pipedrive Activity ${activityId}`);
-                    }
-                    
-                    return res.status(200).json({ message: 'Activity processed successfully' });
-
-                } else {
-                    console.log(`Lead not found for Activity (Deal ID: ${deal_id})`);
-                    // Don't return 404 to avoid webhook retries if it's just a non-synced lead
-                    return res.status(200).json({ message: 'Lead not found for activity, ignored' });
-                }
-            } catch (error) {
-                console.error('Error processing activity:', error);
-                return res.status(500).json({ message: 'Error processing activity' });
+            } 
+            // If no deal_id (or lead not found by it), but we have existing task, use its lead
+            else if (existingTask) {
+                lead = await Lead.findByPk(existingTask.leadId);
             }
+
+            if (lead) {
+                // Calculate Due Date (UTC-3)
+                let dueDate = null;
+                if (due_date) {
+                    const timePart = (due_time && due_time.value) ? due_time.value : '00:00:00';
+                    dueDate = new Date(`${due_date}T${timePart}-03:00`);
+                }
+
+                // Prepare task data
+                const taskData = {
+                    leadId: lead.id,
+                    title: subject,
+                    description: public_description || note || '',
+                    duration: (duration && duration.value) ? duration.value : null,
+                    done: !!done,
+                    pipedriveId: activityId,
+                    userId: null // System update
+                };
+
+                if (dueDate) {
+                    taskData.dueDate = dueDate;
+                }
+
+                if (existingTask) {
+                    await existingTask.update(taskData);
+                    console.log(`Task ${existingTask.id} updated from Pipedrive Activity ${activityId}`);
+                } else {
+                    const newTask = await LeadTask.create(taskData);
+                    console.log(`Task ${newTask.id} created from Pipedrive Activity ${activityId}`);
+                }
+                
+                return res.status(200).json({ message: 'Activity processed successfully' });
+
+            } else {
+                console.log(`Lead not found for Activity (Deal ID: ${deal_id})`);
+                return res.status(200).json({ message: 'Lead not found for activity, ignored' });
+            }
+        } catch (error) {
+            console.error('Error processing activity:', error);
+            return res.status(500).json({ message: 'Error processing activity' });
         }
     }
 

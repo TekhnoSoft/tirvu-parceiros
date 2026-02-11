@@ -21,6 +21,6 @@ router.post('/:id/notes', authorize(['admin', 'partner', 'consultor']), leadCont
 // Tasks routes
 router.get('/:id/tasks', authorize(['admin', 'partner', 'consultor']), leadController.getTasks);
 router.post('/:id/tasks', authorize(['admin', 'partner', 'consultor']), leadController.addTask);
-router.delete('/tasks/:taskId', authorize(['admin', 'partner', 'consultor']), leadController.deleteTask);
+router.delete('/:id/tasks/:taskId', authorize(['admin', 'partner', 'consultor']), leadController.deleteTask);
 
 module.exports = router;
