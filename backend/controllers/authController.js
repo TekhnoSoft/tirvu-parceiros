@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { User, Partner } = require('../models');
+const { User, Partner, Message } = require('../models');
 
 exports.register = async (req, res) => {
   try {
@@ -80,7 +80,18 @@ exports.getMe = async (req, res) => {
       attributes: { exclude: ['password'] },
       include: req.user.role === 'partner' ? [{ model: Partner }] : []
     });
-    res.json(user);
+
+    const unreadMessages = await Message.count({
+      where: {
+        receiverId: req.user.id,
+        read: false
+      }
+    });
+
+    const userData = user.toJSON();
+    userData.unreadMessages = unreadMessages;
+
+    res.json(userData);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });

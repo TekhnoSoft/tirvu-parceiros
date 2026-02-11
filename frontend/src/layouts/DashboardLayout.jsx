@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import BottomNav from '../components/BottomNav';
 import PixRequirementModal from '../components/PixRequirementModal';
@@ -12,6 +12,7 @@ const DashboardLayout = () => {
   const { user, setUnreadMessages } = useAuth();
   const role = user?.role || 'partner';
   const [showPixModal, setShowPixModal] = useState(false);
+  const location = useLocation();
 
   useEffect(() => {
     // Only check for partners
@@ -60,12 +61,14 @@ const DashboardLayout = () => {
             }
         });
 
-        // Increment unread count in context
-        setUnreadMessages(prev => prev + 1);
+        // Increment unread count in context if not on chat page
+        if (!location.pathname.includes('/chat')) {
+            setUnreadMessages(prev => prev + 1);
+        }
     });
 
     return () => socket.disconnect();
-  }, [setUnreadMessages]);
+  }, [setUnreadMessages, location.pathname]);
 
   const checkPixStatus = async () => {
     try {

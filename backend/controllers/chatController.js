@@ -58,11 +58,50 @@ exports.getContacts = async (req, res) => {
       contacts = [...contacts, ...admins];
     }
 
-    // Remove duplicates and Sort by name
+    // Remove duplicates
     const uniqueContacts = Array.from(new Map(contacts.map(c => [c.id, c])).values());
-    uniqueContacts.sort((a, b) => a.name.localeCompare(b.name));
 
-    res.json(uniqueContacts);
+    // Enrich with unread count and last message
+    const contactsWithDetails = await Promise.all(uniqueContacts.map(async (contact) => {
+        const unreadCount = await Message.count({
+            where: {
+                senderId: contact.id,
+                receiverId: userId,
+                read: false
+            }
+        });
+
+        const lastMessage = await Message.findOne({
+            where: {
+                [Op.or]: [
+                    { senderId: contact.id, receiverId: userId },
+                    { senderId: userId, receiverId: contact.id }
+                ]
+            },
+            order: [['createdAt', 'DESC']],
+            attributes: ['createdAt', 'content']
+        });
+
+        return {
+            ...contact.toJSON(),
+            unreadCount,
+            lastMessage: lastMessage ? lastMessage.content : null,
+            lastMessageAt: lastMessage ? lastMessage.createdAt : null
+        };
+    }));
+
+    // Sort by last message date (desc), then by name
+    contactsWithDetails.sort((a, b) => {
+        const dateA = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
+        const dateB = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
+        
+        if (dateB !== dateA) {
+            return dateB - dateA;
+        }
+        return a.name.localeCompare(b.name);
+    });
+
+    res.json(contactsWithDetails);
 
   } catch (error) {
     console.error('Error fetching contacts:', error);

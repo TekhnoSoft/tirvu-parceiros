@@ -7,7 +7,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 const Chat = () => {
-  const { user, setUnreadMessages } = useAuth();
+  const { user, setUnreadMessages, loading: authLoading } = useAuth();
   const [contacts, setContacts] = useState([]);
   const [activeContact, setActiveContact] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -20,20 +20,23 @@ const Chat = () => {
   const [loading, setLoading] = useState(true);
   const [isMobileListOpen, setIsMobileListOpen] = useState(true);
 
-  // Reset global unread count when opening chat or selecting contact
+  // Reset global unread count when opening chat
+  useEffect(() => {
+    if (!authLoading && setUnreadMessages) {
+      setUnreadMessages(0);
+    }
+  }, [setUnreadMessages, authLoading]);
+
+  // Reset local unread count when selecting contact
   useEffect(() => {
     if (activeContact) {
-      if (setUnreadMessages) {
-        setUnreadMessages(prev => Math.max(0, prev - (unreadCounts[activeContact.id] || 0)));
-      }
-      
       // Also update local unread counts
       setUnreadCounts(prev => ({
         ...prev,
         [activeContact.id]: 0
       }));
     }
-  }, [activeContact, setUnreadMessages]);
+  }, [activeContact]);
 
   // Initialize Socket
   useEffect(() => {
@@ -56,6 +59,16 @@ const Chat = () => {
     try {
       const data = await chatService.getContacts();
       setContacts(data);
+      
+      // Initialize unread counts from backend data
+      const initialUnread = {};
+      data.forEach(contact => {
+        if (contact.unreadCount > 0) {
+            initialUnread[contact.id] = contact.unreadCount;
+        }
+      });
+      setUnreadCounts(prev => ({ ...prev, ...initialUnread }));
+      
     } catch (error) {
       console.error('Error loading contacts:', error);
     }
