@@ -96,6 +96,49 @@ const handlePipedriveWebhook = async (req, res) => {
         }
     }
 
+    // Handle Deal Change (Stage Change)
+    if (payload.meta && payload.meta.entity === 'deal' && payload.meta.action === 'change' && payload.data) {
+        const dealId = payload.meta.entity_id;
+        const stageId = payload.data.stage_id;
+        
+        console.log(`Processing Deal Change: Deal ID ${dealId}, New Stage ID: ${stageId}`);
+
+        if (dealId && stageId) {
+            const newStatus = STAGE_MAP[parseInt(stageId)];
+            
+            if (newStatus) {
+                try {
+                    // Find lead by refId (dealId)
+                    // Also check pipedriveId for backward compatibility
+                    const lead = await Lead.findOne({ 
+                        where: { 
+                            [Op.or]: [
+                                { refId: String(dealId) },
+                                { pipedriveId: String(dealId) }
+                            ]
+                        } 
+                    });
+                    
+                    if (lead) {
+                        await lead.update({ status: newStatus });
+                        console.log(`Lead ${lead.id} updated to status ${newStatus}`);
+                        return res.status(200).json({ message: 'Lead status updated successfully' });
+                    } else {
+                        console.log(`Lead not found for Deal Change (Deal ID: ${dealId})`);
+                        // Fallback logic could go here if needed, but keeping it strict for now based on user request
+                        return res.status(404).json({ message: 'Lead not found for deal change' });
+                    }
+                } catch (error) {
+                    console.error('Error updating lead status:', error);
+                    return res.status(500).json({ message: 'Error processing deal change' });
+                }
+            } else {
+                 console.log(`Stage ID ${stageId} not mapped to any known status.`);
+                 return res.status(200).json({ message: 'Stage not mapped, ignored' });
+            }
+        }
+    }
+
     // Extract relevant data
     // Support both direct fields (user example) and standard Pipedrive structure (current/previous)
     const dealId = payload.deal_id || (payload.current && payload.current.id);

@@ -1556,9 +1556,9 @@ const Leads = () => {
                                     <div className="flex justify-between items-start mb-2">
                                         <div className="flex items-center gap-2">
                                             <div className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">
-                                                {note.author?.name?.charAt(0) || 'U'}
+                                                {note.author?.name?.charAt(0) || 'C'}
                                             </div>
-                                            <span className="text-sm font-medium text-gray-900">{note.author?.name || 'Usuário'}</span>
+                                            <span className="text-sm font-medium text-gray-900">{note.author?.name || 'Consultor'}</span>
                                             <span className="text-xs text-gray-500 px-1.5 py-0.5 bg-gray-200 rounded-full">
                                                 {note.author?.role === 'admin' ? 'Admin' : 'Parceiro'}
                                             </span>
