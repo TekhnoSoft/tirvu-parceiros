@@ -107,6 +107,25 @@ const Chat = () => {
     scrollToBottom();
   };
 
+  // Helper functions for roles
+  const getRoleLabel = (role) => {
+    switch (role?.toLowerCase()) {
+      case 'admin': return 'Administrador';
+      case 'partner': return 'Parceiro';
+      case 'consultor': return 'Consultor';
+      default: return role;
+    }
+  };
+
+  const getRoleStyle = (role) => {
+    switch (role?.toLowerCase()) {
+      case 'admin': return 'bg-purple-100 text-purple-700 border border-purple-200';
+      case 'partner': return 'bg-blue-100 text-blue-700 border border-blue-200';
+      case 'consultor': return 'bg-emerald-100 text-emerald-700 border border-emerald-200';
+      default: return 'bg-gray-100 text-gray-700 border border-gray-200';
+    }
+  };
+
   const filteredContacts = contacts.filter(contact => 
     contact.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -148,9 +167,11 @@ const Chat = () => {
                 <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-bold shrink-0">
                   {contact.name.charAt(0).toUpperCase()}
                 </div>
-                <div className="overflow-hidden">
+                <div className="overflow-hidden flex flex-col items-start gap-1">
                   <p className="font-medium text-gray-900 truncate">{contact.name}</p>
-                  <p className="text-xs text-gray-500 capitalize">{contact.role}</p>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${getRoleStyle(contact.role)}`}>
+                    {getRoleLabel(contact.role)}
+                  </span>
                 </div>
               </button>
             ))
@@ -175,7 +196,9 @@ const Chat = () => {
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900">{activeContact.name}</h3>
-                <p className="text-xs text-gray-500 capitalize">{activeContact.role}</p>
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${getRoleStyle(activeContact.role)}`}>
+                  {getRoleLabel(activeContact.role)}
+                </span>
               </div>
             </div>
 
