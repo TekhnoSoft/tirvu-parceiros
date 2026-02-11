@@ -106,7 +106,7 @@ exports.create = async (req, res) => {
         partnerPhone = partnerData.phone;
       }
 
-      let response = await axios.post('https://tirvu.app.n8n.cloud/webhook-test/tirvu/indicacoes/novo', {
+      let response = await axios.post('https://tirvu.app.n8n.cloud/webhook/tirvu/indicacoes/novo', {
         indicacao_id: lead.id,
         partner_id: partnerUserId ? partnerUserId : 0,
         nome: name,
