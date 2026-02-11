@@ -200,7 +200,7 @@ const Materials = () => {
 
       {loading ? (
         <div className="flex justify-center items-center h-64">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <img src="/loader-logo.gif" alt="Carregando..." className="h-40 w-auto" />
         </div>
       ) : materials.length === 0 ? (
         <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">

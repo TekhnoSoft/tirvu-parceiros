@@ -22,7 +22,11 @@ const PartnerDashboard = () => {
   }, []);
 
   if (loading) {
-    return <div className="text-center p-8">Carregando dados...</div>;
+    return (
+      <div className="flex justify-center items-center h-full p-8">
+        <img src="/loader-logo.gif" alt="Carregando..." className="h-40 w-auto" />
+      </div>
+    );
   }
 
   if (!data) {

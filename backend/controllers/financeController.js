@@ -17,6 +17,26 @@ exports.listMovements = async (req, res) => {
       
       leadWhere.partnerId = partner.id;
       transactionWhere.partnerId = partner.id;
+    } else if (userRole === 'consultor') {
+      const partners = await Partner.findAll({ 
+        where: { consultantId: userId },
+        attributes: ['id']
+      });
+      const partnerIds = partners.map(p => p.id);
+      
+      if (partnerIds.length === 0) return res.json([]);
+
+      if (partnerId) {
+        if (partnerIds.includes(Number(partnerId))) {
+          leadWhere.partnerId = partnerId;
+          transactionWhere.partnerId = partnerId;
+        } else {
+          return res.json([]);
+        }
+      } else {
+        leadWhere.partnerId = { [Op.in]: partnerIds };
+        transactionWhere.partnerId = { [Op.in]: partnerIds };
+      }
     } else if (partnerId) {
         // Admin filtering by specific partner
         leadWhere.partnerId = partnerId;
@@ -112,6 +132,11 @@ exports.getProof = async (req, res) => {
         if (userRole === 'partner') {
             const partner = await Partner.findOne({ where: { userId } });
             if (lead.partnerId !== partner.id) return res.status(403).json({ message: 'Acesso negado' });
+        } else if (userRole === 'consultor') {
+            const partner = await Partner.findByPk(lead.partnerId);
+            if (!partner || partner.consultantId !== userId) {
+                return res.status(403).json({ message: 'Acesso negado' });
+            }
         }
 
         // Return the Base64 string directly or as a file download

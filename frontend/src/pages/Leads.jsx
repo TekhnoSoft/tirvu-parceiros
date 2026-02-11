@@ -174,9 +174,9 @@ const Leads = () => {
     updateDateRange();
   }, [dateFilterMode, referenceDate]);
 
-  // Fetch partners if admin
+  // Fetch partners if admin or consultor
   useEffect(() => {
-    if (user?.role === 'admin') {
+    if (user?.role === 'admin' || user?.role === 'consultor') {
       fetchPartners();
     }
   }, [user]);
@@ -650,8 +650,8 @@ const Leads = () => {
               </div>
             </div>
 
-            {/* Partner Filter (Admin Only) */}
-            {user?.role === 'admin' && (
+            {/* Partner Filter (Admin and Consultant) */}
+            {(user?.role === 'admin' || user?.role === 'consultor') && (
             <div className="relative" ref={partnerDropdownRef}>
                 <button
                 onClick={() => setIsPartnerDropdownOpen(!isPartnerDropdownOpen)}
@@ -825,7 +825,11 @@ const Leads = () => {
             <tbody className="divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                  <td colSpan="6" className="px-6 py-10 text-center text-gray-500">Carregando...</td>
+                  <td colSpan="7" className="px-6 py-10 text-center text-gray-500">
+                    <div className="w-full flex justify-center items-center">
+                        <img src="/loader-logo.gif" alt="Carregando..." className="h-40 w-auto" />
+                    </div>
+                  </td>
                 </tr>
               ) : filteredLeads.length === 0 ? (
                 <tr>
@@ -974,7 +978,9 @@ const Leads = () => {
       {/* List - Mobile */}
       <div className="sm:hidden space-y-4">
         {loading ? (
-           <div className="text-center py-10 text-gray-500">Carregando...</div>
+           <div className="flex justify-center items-center py-10">
+               <img src="/loader-logo.gif" alt="Carregando..." className="h-40 w-auto" />
+           </div>
         ) : filteredLeads.length === 0 ? (
            <div className="text-center py-10 text-gray-500">Nenhum lead encontrado.</div>
         ) : (
@@ -1536,7 +1542,7 @@ const Leads = () => {
                     
                     {isLoadingNotes ? (
                         <div className="flex justify-center py-8">
-                            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                            <img src="/loader-logo.gif" alt="Carregando..." className="h-40 w-auto" />
                         </div>
                     ) : notesList.length === 0 ? (
                         <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg border border-gray-100 border-dashed">

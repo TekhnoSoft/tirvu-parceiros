@@ -64,7 +64,7 @@ const Profile = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-full">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <img src="/loader-logo.gif" alt="Carregando..." className="h-40 w-auto" />
       </div>
     );
   }

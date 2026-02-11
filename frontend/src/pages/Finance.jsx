@@ -130,7 +130,7 @@ const Finance = () => {
             <div className="sm:hidden space-y-4">
                 {loading ? (
                     <div className="flex justify-center items-center py-12">
-                        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                        <img src="/loader-logo.gif" alt="Carregando..." className="h-40 w-auto" />
                     </div>
                 ) : movements.length === 0 ? (
                     <div className="py-12 text-center text-gray-500">
@@ -211,13 +211,15 @@ const Finance = () => {
                         <tbody className="divide-y divide-gray-100">
                             {loading ? (
                                 <tr>
-                                    <td colSpan="6" className="px-6 py-8 text-center text-gray-500">
-                                        Carregando movimentações...
+                                    <td colSpan={user.role === 'admin' ? 6 : 5} className="px-6 py-8 text-center text-gray-500">
+                                        <div className="w-full flex justify-center items-center">
+                                            <img src="/loader-logo.gif" alt="Carregando..." className="h-40 w-auto" />
+                                        </div>
                                     </td>
                                 </tr>
                             ) : movements.length === 0 ? (
                                 <tr>
-                                    <td colSpan="6" className="px-6 py-8 text-center text-gray-500">
+                                    <td colSpan={user.role === 'admin' ? 6 : 5} className="px-6 py-8 text-center text-gray-500">
                                         Nenhuma movimentação encontrada.
                                     </td>
                                 </tr>

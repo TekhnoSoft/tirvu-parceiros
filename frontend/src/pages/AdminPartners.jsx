@@ -402,7 +402,7 @@ const AdminPartners = () => {
       <div className="hidden sm:block bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         {loading ? (
           <div className="flex justify-center items-center p-12">
-            <Loader2 className="w-8 h-8 text-primary animate-spin" />
+            <img src="/loader-logo.gif" alt="Carregando..." className="h-40 w-auto" />
           </div>
         ) : filteredPartners.length === 0 ? (
           <div className="p-12 text-center text-gray-500">
@@ -481,7 +481,7 @@ const AdminPartners = () => {
       <div className="sm:hidden space-y-4">
         {loading ? (
             <div className="flex justify-center items-center py-12">
-            <Loader2 className="w-8 h-8 text-primary animate-spin" />
+            <img src="/loader-logo.gif" alt="Carregando..." className="h-40 w-auto" />
             </div>
         ) : filteredPartners.length === 0 ? (
             <div className="py-12 text-center text-gray-500">

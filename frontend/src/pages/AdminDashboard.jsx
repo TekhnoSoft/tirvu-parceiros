@@ -24,7 +24,11 @@ const AdminDashboard = () => {
     fetchData();
   }, []);
 
-  if (loading) return <div className="text-center p-8">Carregando dados...</div>;
+  if (loading) return (
+    <div className="flex justify-center items-center h-full p-8">
+      <img src="/loader-logo.gif" alt="Carregando..." className="h-40 w-auto" />
+    </div>
+  );
   if (!data) return <div className="text-center p-8 text-red-500">Erro ao carregar dados.</div>;
 
   const { partnerStats, leadStats, financialStats, recentPartners, partnersByState } = data;

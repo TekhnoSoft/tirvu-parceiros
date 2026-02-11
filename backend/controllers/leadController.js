@@ -142,6 +142,27 @@ exports.list = async (req, res) => {
         return res.status(404).json({ message: 'Parceiro não encontrado.' });
       }
       whereClause.partnerId = partner.id;
+    } else if (req.user.role === 'consultor') {
+      const partners = await Partner.findAll({ 
+        where: { consultantId: req.user.id },
+        attributes: ['id']
+      });
+      
+      const partnerIds = partners.map(p => p.id);
+      
+      if (partnerIds.length === 0) {
+        return res.json([]);
+      }
+
+      if (partnerId) {
+        if (partnerIds.includes(Number(partnerId))) {
+          whereClause.partnerId = partnerId;
+        } else {
+          return res.json([]); // Ou 403, mas retornando vazio mantém o padrão de lista vazia
+        }
+      } else {
+        whereClause.partnerId = { [Op.in]: partnerIds };
+      }
     } else if (partnerId) {
        // Se for admin e passou partnerId, filtra por ele
        whereClause.partnerId = partnerId;
@@ -196,10 +217,15 @@ exports.addNote = async (req, res) => {
     const lead = await Lead.findByPk(id);
     if (!lead) return res.status(404).json({ message: 'Lead não encontrado.' });
 
-    // Verificar permissão (Partner só pode ver seus leads, Admin vê tudo)
+    // Verificar permissão (Partner só pode ver seus leads, Admin vê tudo, Consultor vê de seus parceiros)
     if (req.user.role === 'partner') {
       const partner = await Partner.findOne({ where: { userId } });
       if (lead.partnerId !== partner.id) {
+        return res.status(403).json({ message: 'Acesso negado.' });
+      }
+    } else if (req.user.role === 'consultor') {
+      const partner = await Partner.findByPk(lead.partnerId);
+      if (!partner || partner.consultantId !== req.user.id) {
         return res.status(403).json({ message: 'Acesso negado.' });
       }
     }
@@ -232,6 +258,11 @@ exports.getNotes = async (req, res) => {
     if (req.user.role === 'partner') {
       const partner = await Partner.findOne({ where: { userId: req.user.id } });
       if (lead.partnerId !== partner.id) {
+        return res.status(403).json({ message: 'Acesso negado.' });
+      }
+    } else if (req.user.role === 'consultor') {
+      const partner = await Partner.findByPk(lead.partnerId);
+      if (!partner || partner.consultantId !== req.user.id) {
         return res.status(403).json({ message: 'Acesso negado.' });
       }
     }
@@ -286,6 +317,11 @@ exports.update = async (req, res) => {
         if (count >= 10) {
           return res.status(400).json({ message: 'Você atingiu o limite mensal de 10 leads sem autorização para a Tirvu falar em seu nome.' });
         }
+      }
+    } else if (req.user.role === 'consultor') {
+      const partner = await Partner.findByPk(lead.partnerId);
+      if (!partner || partner.consultantId !== req.user.id) {
+        return res.status(403).json({ message: 'Acesso negado.' });
       }
     }
 

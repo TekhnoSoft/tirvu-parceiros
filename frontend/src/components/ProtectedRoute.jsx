@@ -6,7 +6,11 @@ const ProtectedRoute = ({ allowedRoles }) => {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return <div className="flex justify-center items-center h-screen">Carregando...</div>;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <img src="/loader-logo.gif" alt="Carregando..." className="h-40 w-auto" />
+      </div>
+    );
   }
 
   if (!user) {

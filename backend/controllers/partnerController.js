@@ -10,6 +10,11 @@ exports.listPartners = async (req, res) => {
       const whereClause = {};
       
       if (status && status !== 'all') whereClause.status = status;
+
+      // Filter by Consultant
+      if (req.user.role === 'consultor') {
+        whereClause.consultantId = req.user.id;
+      }
   
       if (startDate && endDate) {
         // Garantir que as datas incluam o dia inteiro (início do dia até final do dia)

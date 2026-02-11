@@ -186,7 +186,7 @@ const Login = () => {
                 >
                   {isLoading ? (
                     <>
-                      <Loader2 className="animate-spin -ml-1 mr-2 h-5 w-5" />
+                      <img src="/loader-logo.gif" alt="Carregando..." className="h-8 w-auto mr-2" />
                       Entrando...
                     </>
                   ) : (

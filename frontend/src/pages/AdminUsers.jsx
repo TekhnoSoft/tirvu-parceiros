@@ -114,6 +114,9 @@ const AdminUsers = () => {
     };
 
     const filteredUsers = users.filter(user => {
+        // Show only admin and consultor
+        if (!['admin', 'consultor'].includes(user.role)) return false;
+
         const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                               user.email.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesRole = roleFilter === 'all' || user.role === roleFilter;
@@ -159,7 +162,6 @@ const AdminUsers = () => {
                             <option value="all">Todos os Cargos</option>
                             <option value="admin">Administradores</option>
                             <option value="consultor">Consultores</option>
-                            <option value="partner">Parceiros</option>
                         </select>
                     </div>
                 </div>
@@ -169,7 +171,7 @@ const AdminUsers = () => {
             <div className="sm:hidden space-y-4">
                 {loading ? (
                     <div className="flex justify-center py-12">
-                        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                        <img src="/loader-logo.gif" alt="Carregando..." className="h-40 w-auto" />
                     </div>
                 ) : filteredUsers.length === 0 ? (
                     <div className="text-center py-12 text-gray-500">
@@ -239,7 +241,9 @@ const AdminUsers = () => {
                             {loading ? (
                                 <tr>
                                     <td colSpan="4" className="px-6 py-12 text-center text-gray-500">
-                                        <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto" />
+                                        <div className="w-full flex justify-center items-center">
+                                            <img src="/loader-logo.gif" alt="Carregando..." className="h-40 w-auto" />
+                                        </div>
                                     </td>
                                 </tr>
                             ) : filteredUsers.length === 0 ? (
