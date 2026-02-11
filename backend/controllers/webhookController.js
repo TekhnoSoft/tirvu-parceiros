@@ -17,6 +17,7 @@ const STAGE_MAP = {
 
 const handlePipedriveWebhook = async (req, res) => {
   try {
+    console.log(req);
     console.log('Received Pipedrive Webhook:', JSON.stringify(req.body, null, 2));
 
     let payload = req.body;
